@@ -1,197 +1,171 @@
 %{
 
-#include <stdio.h>
+#include "common.h"
+#include "syntax.tab.h"
 
 #define DEBUG
 #ifdef DEBUG
-#define DBG_PRINTF() printf("line %d | token %s\n", yylineno, yytext);
+#define DBG_PRINTF() log("line %d | token %s", yylineno, yytext);
 #else
 #define DBG_PRINTF()
 #endif
 
-#define panic(format, ...) printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__)
-#define log(format, ...) printf("\33[1;35m" format "\33[0m\n", ##__VA_ARGS__)
+enum { _OCT, _DEC, _HEX, };
 
-typedef struct {
-  int yyname;
-  union {
-    int yylval;
-    unsigned yyint;
-    float yyfloat;
-    char yystring[64];
-  };
-} Token;
-
-Token tokens[1024];
-size_t curr_index = 0;
-
-enum {
-  LT,
-  LE,
-  EQ,
-  NE,
-  GT,
-  GE,
-  RELOP,
-
-  ASSIGNOP,
-
-  SEMI,
-  COMMA,
-  DOT,
-
-  LP,
-  RP,
-  LB,
-  RB,
-  LC,
-  RC,
-
-  PLUS,
-  MINUS,
-  STAR,
-  DIV,
-  AND,
-  OR,
-  NOT,
-
-  TYPE,
-  INT,
-  FLOAT,
-
-  IF,
-  ELSE,
-  WHILE,
-  STRUCT,
-  RETURN,
-
-  ID,
+static const char *int_base_format[] = {
+    [_OCT] = "%o",
+    [_DEC] = "%d",
+    [_HEX] = "%x",
 };
 
-static void install(int type, int attr) {
-  if (attr >= 0) {
-    tokens[curr_index].yylval = attr;
-  }
-  DBG_PRINTF();
-  tokens[curr_index].yyname = type;
-  ++curr_index;
+int has_lexical_error = 0;
+static void lexical_error() {
+  has_lexical_error = 1;
+  panic("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext); 
 }
 
-void debug() {
-  for (size_t i = 0; i < curr_index; ++i) {
-    switch (tokens[i].yyname) {
-    case INT:
-      log("%u", tokens[i].yyint);
-      break;
-    case FLOAT:
-      log("%f", tokens[i].yyfloat);
-      break;
-    case ID:
-      log("%s", tokens[i].yystring);
-      break;
-    default:
-      break;
-    }
+static void install(int type, int attr) {
+  DBG_PRINTF();
+
+  yylval.type_ast = (struct Ast *)log_malloc(sizeof(struct Ast));
+  yylval.type_ast->type = type;
+  yylval.type_ast->children_count = 0;
+  yylval.type_ast->lineno = yylineno;
+
+  switch (type) {
+  case _RELOP:
+  case _TYPE:
+    yylval.type_ast->symbol_index = symbol_table_index;
+    symbol_table[symbol_table_index]._attr = attr;
+    ++symbol_table_index;
+    break;
+  case _INT:
+    yylval.type_ast->symbol_index = symbol_table_index;
+    sscanf(yytext, int_base_format[attr],
+           &symbol_table[symbol_table_index]._int);
+    ++symbol_table_index;
+    break;
+  case _FLOAT:
+    assert(attr == -1);
+    yylval.type_ast->symbol_index = symbol_table_index;
+    sscanf(yytext, "%f", &symbol_table[symbol_table_index]._float);
+    ++symbol_table_index;
+    break;
+  case _ID:
+    assert(attr == -1);
+    yylval.type_ast->symbol_index = symbol_table_index;
+    sscanf(yytext, "%63s", symbol_table[symbol_table_index]._string);
+    ++symbol_table_index;
+    break;
+  default:
+    assert(attr == -1);
+    yylval.type_ast->symbol_index = -1;
+    break;
   }
 }
 
 %}
 
 %option yylineno
+/* %option noyywrap */
 
 /* regular definitions */
-delim " "|\t|\n|\r\n
-WS {delim}+
+
+newline ("\n"|"\r\n")+
+blank (" "|"\t")+
 
 letter [_A-Za-z]
 digit [0-9]
 
-dec 0|[1-9]{digit}*
-hex 0x([0-9a-f]+)|0X([0-9A-F]+)
-oct 0[0-7]+
-INT {dec}|{hex}|{oct}
+dec_int 0|[1-9]{digit}*
+hex_int 0[xX]([0-9a-fA-F]+)
+oct_int 0[0-7]+
 
 /*
  * normal_float ({digit}+)"."({digit}+)
  * exponent_float ((({digit}*)"."({digit}+))|(({digit}+)"."({digit}*)))[eE]["+"|"-"]?{digit}+
- * FLOAT {normal_float}|{exponent_float}
  */
 
-FLOAT ({digit}+)"."({digit}+)
+float ({digit}+)"."({digit}+)
 
-ID {letter}({letter}|{digit})*
-SEMI ";"
-COMMA ","
-ASSIGNOP "="
-GT ">"
-GE ">="
-EQ "=="
-NE "!="
-LT "<"
-LE "<="
-PLUS "+"
-MINUS "-"
-STAR "*"
-DIV "/"
-AND "&&"
-OR "||"
-DOT "."
-NOT "!"
-TYPE "int" | "float"
-LP "("
-RP ")"
-LB "["
-RB "]"
-LC "{"
-RC "}"
-STRUCT "struct"
-RETURN "return"
-IF "if"
-ELSE "else"
-WHILE "while"
+id {letter}({letter}|{digit})*
+semi ";"
+comma ","
+assignop "="
+gt ">"
+ge ">="
+eq "=="
+ne "!="
+lt "<"
+le "<="
+plus "+"
+minus "-"
+star "*"
+div "/"
+and "&&"
+or "||"
+dot "."
+not "!"
+type_int "int"
+type_float "float"
+lp "("
+rp ")"
+lb "["
+rb "]"
+lc "{"
+rc "}"
+struct "struct"
+return "return"
+if "if"
+else "else"
+while "while"
 
 
 %%
 
-{WS} { /* no action and no return */ }
+{newline} {}
+{blank} {}
 
-{INT} { sscanf(yytext, "%u", &tokens[curr_index].yyint); install(INT, -1);  }
-{FLOAT} { sscanf(yytext, "%f", &tokens[curr_index].yyfloat); install(FLOAT, -1); }
+{dec_int} { install(_INT, _DEC); return INT; }
+{oct_int} { install(_INT, _OCT); return INT; }
+{hex_int} { install(_INT, _HEX); return INT; }
+{float} { install(_FLOAT, -1); return FLOAT; }
 
-{LT} { install(RELOP, LT); }
-{LE} { install(RELOP, LE); }
-{GT} { install(RELOP, GT); }
-{GE} { install(RELOP, GE); }
-{EQ} { install(RELOP, EQ); }
-{NE} { install(RELOP, NE); }
+{lt} { install(_RELOP, _LT); return RELOP; }
+{le} { install(_RELOP, _LE); return RELOP; }
+{gt} { install(_RELOP, _GT); return RELOP; }
+{ge} { install(_RELOP, _GE); return RELOP; }
+{eq} { install(_RELOP, _EQ); return RELOP; }
+{ne} { install(_RELOP, _NE); return RELOP; }
 
-{ASSIGNOP} { install(ASSIGNOP, -1); }
-{SEMI} { install(SEMI, -1); }
-{COMMA} { install(COMMA, -1); }
-{DOT} { install(DOT, -1); }
-{LP} { install(LP, -1); }
-{RP} { install(RP, -1); }
-{LB} { install(LB, -1); }
-{RB} { install(RB, -1); }
-{LC} { install(LC, -1); }
-{RC} { install(RC, -1); }
-{PLUS} { install(PLUS, -1); }
-{MINUS} { install(MINUS, -1); }
-{STAR} { install(STAR, -1); }
-{DIV} { install(DIV, -1); }
-{AND} { install(AND, -1); }
-{OR} { install(OR, -1); }
-{IF} { install(IF, -1); }
-{ELSE} { install(ELSE, -1); }
-{WHILE} { install(WHILE, -1); }
-{STRUCT} { install(STRUCT, -1); }
-{RETURN} { install(RETURN, -1); }
+{assignop} { install(_ASSIGNOP, -1); return ASSIGNOP; }
+{semi} { install(_SEMI, -1); return SEMI; }
+{comma} { install(_COMMA, -1); return COMMA; }
+{dot} { install(_DOT, -1); return DOT; }
+{lp} { install(_LP, -1); return LP; }
+{rp} { install(_RP, -1); return RP; }
+{lb} { install(_LB, -1); return LB; }
+{rb} { install(_RB, -1); return RB; }
+{lc} { install(_LC, -1); return LC; }
+{rc} { install(_RC, -1); return RC; }
+{plus} { install(_PLUS, -1); return PLUS; }
+{minus} { install(_MINUS, -1); return MINUS; }
+{star} { install(_STAR, -1); return STAR; }
+{div} { install(_DIV, -1); return DIV; }
+{and} { install(_AND, -1); return AND; }
+{or} { install(_OR, -1); return OR; }
+{not} { install(_NOT, -1); return NOT; }
+{if} { install(_IF, -1); return IF; }
+{else} { install(_ELSE, -1); return ELSE; }
+{while} { install(_WHILE, -1); return WHILE; }
+{struct} { install(_STRUCT, -1); return STRUCT; }
+{return} { install(_RETURN, -1); return RETURN; }
 
-"int" { install(TYPE, INT); }
-"float" { install(TYPE, FLOAT); }
+{type_int} { install(_TYPE, _INT); return TYPE; }
+{type_float} { install(_TYPE, _FLOAT); return TYPE; }
 
-{ID} { sscanf(yytext, "%63s", tokens[curr_index].yystring); install(ID, -1); }
+{id} { install(_ID, -1); return ID; }
 
-. { panic("Illegal token"); DBG_PRINTF(); }
+. { lexical_error(); }
 
 %%
