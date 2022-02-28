@@ -2,10 +2,14 @@
 #define __COMMON_H__
 
 #include <assert.h>
+#include <ctype.h>
 #include <limits.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#define print(format, ...) printf(format "\n", ##__VA_ARGS__)
 #define panic(format, ...) printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__)
 #define log(format, ...) printf("\33[1;35m" format "\33[0m\n", ##__VA_ARGS__)
 
@@ -21,20 +25,16 @@ enum {
   _GT,
   _GE,
   _RELOP,
-
   _ASSIGNOP,
-
   _SEMI,
   _COMMA,
   _DOT,
-
   _LP,
   _RP,
   _LB,
   _RB,
   _LC,
   _RC,
-
   _PLUS,
   _MINUS,
   _STAR,
@@ -42,12 +42,10 @@ enum {
   _AND,
   _OR,
   _NOT,
-
   _TYPE,
   _INT,
   _FLOAT,
   _ID,
-
   _IF,
   _ELSE,
   _WHILE,
@@ -110,6 +108,7 @@ enum {
   _(INT)                                                                       \
   _(FLOAT)                                                                     \
   _(ID)                                                                        \
+  _(IF)                                                                        \
   _(ELSE)                                                                      \
   _(WHILE)                                                                     \
   _(STRUCT)                                                                    \
@@ -165,5 +164,8 @@ extern void *node_table[MAX_NODE];
 extern size_t node_table_index;
 
 extern void *log_malloc(size_t size);
+extern void make_root(struct Ast **root);
+extern void make_node(struct Ast **node, int type);
+extern void make_children(struct Ast **root, int count, ...);
 
 #endif

@@ -1,13 +1,8 @@
-# GNU make手册：http://www.gnu.org/software/make/manual/make.html
-# ************ 遇到不明白的地方请google以及阅读手册 *************
-
-# 编译器设定和编译选项
 CC = gcc
 FLEX = flex
 BISON = bison
-CFLAGS = -std=c11 -g
+CFLAGS = -std=c11 -g -Og
 
-# 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
 OBJS = $(CFILES:.c=.o)
 LFILE = $(shell find ./ -name "*.l")
@@ -34,10 +29,8 @@ syntax-c: $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
-# 定义的一些伪目标
-.PHONY: clean test
-test:
-	./parser ../Test/test1.cmm
+
+.PHONY: clean
 clean:
 	rm -f scanner parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output syntax.dot syntax.png
 	rm -f $(OBJS) $(OBJS:.o=.d)

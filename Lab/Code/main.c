@@ -1,6 +1,4 @@
 #include "common.h"
-#include <stdarg.h>
-#include <stdio.h>
 
 /* extern int yydebug; */
 extern void yyrestart(FILE *);
@@ -60,6 +58,13 @@ void make_children(struct Ast **root, int count, ...) {
   (*root)->children_count = count;
 }
 
+static void print_lower(const char *s) {
+  size_t length = strlen(s);
+  for (size_t i = 0; i < length; ++i) {
+    putc(tolower(s[i]), stdout);
+  }
+}
+
 static void indented(int indent) {
   for (int i = 0; i < indent; ++i) {
     printf(" ");
@@ -71,8 +76,9 @@ static void print_attr(int type, int index) {
 
   switch (type) {
   case _TYPE:
-  case _RELOP:
-    printf("%s", symbol_names[symbol_table[index]._attr]);
+    /* case _RELOP: */
+    print_lower(symbol_names[symbol_table[index]._attr]);
+    /* printf("%s", symbol_names[symbol_table[index]._attr]); */
     break;
   case _INT:
     printf("%d", symbol_table[index]._int);
@@ -97,7 +103,7 @@ static void print_tree(struct Ast *root, int indent) {
 
   switch (type) {
   case _TYPE:
-  case _RELOP:
+  /* case _RELOP: */
   case _INT:
   case _FLOAT:
   case _ID:

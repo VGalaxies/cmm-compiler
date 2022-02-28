@@ -1,4 +1,5 @@
-int main(){
+int main()
+{
 	float a[10][2];
 	int i;
 	a[5,3] = 1.5;

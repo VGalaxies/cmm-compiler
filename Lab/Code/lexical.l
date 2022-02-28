@@ -3,8 +3,8 @@
 #include "common.h"
 #include "syntax.tab.h"
 
-#define DEBUG
-#ifdef DEBUG
+/* #define LEXICAL_DEBUG */
+#ifdef LEXICAL_DEBUG
 #define DBG_PRINTF() log("line %d | token %s", yylineno, yytext);
 #else
 #define DBG_PRINTF()
@@ -21,7 +21,8 @@ static const char *int_base_format[] = {
 int has_lexical_error = 0;
 static void lexical_error() {
   has_lexical_error = 1;
-  panic("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext); 
+  /* panic("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext); */
+  print("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext);
 }
 
 static void install(int type, int attr) {
@@ -67,7 +68,7 @@ static void install(int type, int attr) {
 %}
 
 %option yylineno
-/* %option noyywrap */
+%option noyywrap
 
 /* regular definitions */
 
