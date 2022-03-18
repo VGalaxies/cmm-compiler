@@ -1,4 +1,4 @@
-TEST=$(find ../Test -name "*.c")
+TEST=$(find ../Test/$1 -name "*.c" | sort)
 TESTARR=(${TEST})
 
 make clean

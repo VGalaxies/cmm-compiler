@@ -2,12 +2,14 @@
 
 #include "lex.yy.c"
 
-int has_syntax_error = 0;
+extern int prev_lineno;
+
+int syntax_errors = 0;
+/* static int last_error_lineno = -1; // avoid repeated errors */
 void yyerror(const char *);
-static void syntax_error() {
-  /* has_syntax_error = 1; */
-  /* panic("Error type B at Line %d: Syntax error.", yylineno); */
-  /* print("Error type B at Line %d: Syntax error.", yylineno); */
+static void syntax_error(struct Ast * node) {
+  /* syntax_errors++; */
+  /* panic("Error type B at Line [prev_lineno %d | node->lineno %d]: Syntax error.", prev_lineno, node->lineno); */
 }
 
 %}
@@ -43,12 +45,12 @@ Program : ExtDefList { make_root(&$$); make_children(&$$, 1, $1); }
 ;
 ExtDefList : ExtDef ExtDefList { make_node(&$$, _ExtDefList); make_children(&$$, 2, $1, $2); }
            | { make_node(&$$, _EMPTY); }
-           | error ExtDefList { syntax_error(); }
+           /* | error ExtDefList { syntax_error($$); } */
 ;
 ExtDef : Specifier ExtDecList SEMI { make_node(&$$, _ExtDef); make_children(&$$, 3, $1, $2, $3); }
        | Specifier SEMI { make_node(&$$, _ExtDef); make_children(&$$, 2, $1, $2); }
        | Specifier FunDec CompSt { make_node(&$$, _ExtDef); make_children(&$$, 3, $1, $2, $3); }
-       /* | error { syntax_error(); } */
+       | error { syntax_error($$); }
 ;
 ExtDecList : VarDec { make_node(&$$, _ExtDecList); make_children(&$$, 1, $1); }
            | VarDec COMMA ExtDecList { make_node(&$$, _ExtDecList); make_children(&$$, 3, $1, $2, $3); }
@@ -97,10 +99,10 @@ Stmt : Exp SEMI { make_node(&$$, _Stmt); make_children(&$$, 2, $1, $2); }
 /* Local Definitions */
 DefList : Def DefList { make_node(&$$, _DefList); make_children(&$$, 2, $1, $2); }
         | { make_node(&$$, _EMPTY); }
-        | error DefList { syntax_error(); }
+        /* | error DefList { syntax_error($$); } */
 ; 
 Def : Specifier DecList SEMI { make_node(&$$, _Def); make_children(&$$, 3, $1, $2, $3); }
-    /* | error SEMI { syntax_error(); } */
+    | error { syntax_error($$); }
 ;
 DecList : Dec { make_node(&$$, _DecList); make_children(&$$, 1, $1); }
         | Dec COMMA DecList { make_node(&$$, _DecList); make_children(&$$, 3, $1, $2, $3); }
@@ -136,7 +138,7 @@ Args : Exp COMMA Args { make_node(&$$, _Args); make_children(&$$, 3, $1, $2, $3)
 %%
 
 void yyerror(const char *s) {
-  /* fprintf(stderr, "%s\n", s); */
-  has_syntax_error = 1;
-  print("Error type B at Line %d: Syntax error.", yylineno);
+  syntax_errors++;
+  /* log("Error type B at Line [prev %d | curr %d]: Syntax error.", prev_lineno, yylineno); */
+  print("Error type B at Line %d: Syntax error.", prev_lineno);
 }

@@ -1,5 +1,5 @@
-int b;
+int b
 
 int main() {
   int a;
-}}
+}

@@ -1,7 +1,7 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-CFLAGS = -std=c11 -g -Og
+CFLAGS = -O1 -std=gnu11 -ggdb -Wall -Werror -Wno-unused-result -Wno-unused-value -Wno-unused-variable
 
 CFILES = $(shell find ./ -name "*.c")
 OBJS = $(CFILES:.c=.o)
@@ -12,8 +12,11 @@ YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
 
-scanner: lexical $(CFILES)
-	$(CC) -o scanner $(CFILES) -lfl
+BFLAGS = -d -v -Wcounterexamples
+# BFLAGS += -t
+
+# scanner: lexical $(CFILES)
+	# $(CC) -o scanner $(CFILES) -lfl
 
 parser: syntax $(filter-out $(LFO),$(OBJS))
 	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl
@@ -25,7 +28,7 @@ lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
 
 syntax-c: $(YFILE)
-	$(BISON) -o $(YFC) -d -v -Wcounterexamples $(YFILE)
+	$(BISON) -o $(YFC) $(BFLAGS) $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 

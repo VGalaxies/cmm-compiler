@@ -1,5 +1,4 @@
+int b
+
 int main() {
   int a;
-}}
-
-int b;

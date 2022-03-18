@@ -18,9 +18,9 @@ static const char *int_base_format[] = {
     [_HEX] = "%x",
 };
 
-int has_lexical_error = 0;
+int lexical_errors = 0;
 static void lexical_error() {
-  has_lexical_error = 1;
+  ++lexical_errors;
   /* panic("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext); */
   print("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext);
 }

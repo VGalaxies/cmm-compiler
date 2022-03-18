@@ -1,12 +1,16 @@
 #include "common.h"
 
-/* extern int yydebug; */
+/* #define SYNTAX_DEBUG */
+#ifdef SYNTAX_DEBUG
+extern int yydebug;
+#endif
+
 extern void yyrestart(FILE *);
 extern int yyparse();
 extern int yylex_destroy();
 
-extern int has_syntax_error;
-extern int has_lexical_error;
+extern int syntax_errors;
+extern int lexical_errors;
 
 static struct Ast *ast_root;
 
@@ -15,6 +19,8 @@ size_t symbol_table_index = 0;
 
 void *node_table[MAX_NODE];
 size_t node_table_index = 0;
+
+int prev_lineno = 0;
 
 void *log_malloc(size_t size) {
   void *res = malloc(size);
@@ -48,7 +54,7 @@ void make_children(struct Ast **root, int count, ...) {
   for (int i = 0; i < count; ++i) {
     struct Ast *node = va_arg(valist, struct Ast *);
     (*root)->children[i] = node;
-    lineno = MIN(lineno, node->lineno);
+    lineno = MIN(lineno, node->lineno); // assume
   }
 
   va_end(valist);
@@ -56,6 +62,8 @@ void make_children(struct Ast **root, int count, ...) {
   assert(lineno != INT_MAX);
   (*root)->lineno = lineno;
   (*root)->children_count = count;
+
+  prev_lineno = lineno;
 }
 
 static void print_lower(const char *s) {
@@ -148,10 +156,13 @@ int main(int argc, char *argv[]) {
 
   yyrestart(f);
 
-  /* yydebug = 1; */
+#ifdef SYNTAX_DEBUG
+  yydebug = 1;
+#endif
+
   yyparse();
 
-  if (!has_syntax_error && !has_lexical_error) {
+  if (!syntax_errors && !lexical_errors) {
     print_tree(ast_root, 0);
   }
 
