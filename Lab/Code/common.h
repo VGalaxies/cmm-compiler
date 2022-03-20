@@ -12,6 +12,7 @@
 #define print(format, ...) printf(format "\n", ##__VA_ARGS__)
 #define panic(format, ...) printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__)
 #define log(format, ...) printf("\33[1;35m" format "\33[0m\n", ##__VA_ARGS__)
+#define info(format, ...) printf("\33[1;32m" format "\33[0m\n", ##__VA_ARGS__)
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
@@ -79,7 +80,7 @@ enum {
   _EMPTY,
 };
 
-#define SYMBOL_KEYS(_)                                                         \
+#define UNIT_KEYS(_)                                                           \
   _(LT)                                                                        \
   _(LE)                                                                        \
   _(EQ)                                                                        \
@@ -135,16 +136,16 @@ enum {
   _(Exp)                                                                       \
   _(Args)
 
-#define SYMBOL_NAME(name) [_##name] = #name,
-static const char *symbol_names[] = {SYMBOL_KEYS(SYMBOL_NAME)};
+#define UNIT_NAME(name) [_##name] = #name,
+static const char *unit_names[] = {UNIT_KEYS(UNIT_NAME)};
 
 #define MAX_CHILDREN 8
-#define MAX_SYMBOL 1024
+#define MAX_ATTR 1024
 #define MAX_NODE 10240
 
 struct Ast {
   int lineno;
-  int symbol_index;
+  int attr_index;
   int type;
   size_t children_count;
   struct Ast *children[MAX_CHILDREN];
@@ -155,17 +156,66 @@ typedef union {
   unsigned _int;    // for INT
   float _float;     // for FLOAT
   char _string[64]; // for ID
-} Symbol;
+} Attribute;
 
-extern Symbol symbol_table[MAX_SYMBOL];
-extern size_t symbol_table_index;
+extern Attribute attr_table[MAX_ATTR];
+extern size_t attr_table_index;
 
 extern void *node_table[MAX_NODE];
 extern size_t node_table_index;
 
-extern void *log_malloc(size_t size);
+extern void *log_node_malloc(size_t size);
 extern void make_root(struct Ast **root);
 extern void make_node(struct Ast **node, int type);
 extern void make_children(struct Ast **root, int count, ...);
+
+/* semantic part */
+
+typedef struct TypeItem *Type;
+typedef struct FieldListItem *FieldList;
+
+struct TypeItem {
+  enum { BASIC, ARRAY, STRUCTURE } kind;
+  union {
+    // 基本类型
+    int basic;
+    // 数组类型信息包括元素类型与数组大小构成
+    struct {
+      Type elem;
+      unsigned size;
+    } array;
+    // 结构体类型信息是一个链表
+    FieldList structure;
+  } u;
+};
+
+struct FieldListItem {
+  char name[64];  // 域的名字
+  Type type;      // 域的类型
+  FieldList tail; // 下一个域
+};
+
+#define MAX_ARGUMENT 16
+#define MAX_BRACKET 16
+typedef struct SymbolItem *Symbol;
+typedef struct SymbolInfoItem *SymbolInfo;
+
+struct SymbolInfoItem {
+  enum { TypeDef, VariableInfo, FunctionInfo } kind;
+  char name[64];
+  union {
+    Type type;
+    struct {
+      Symbol arguments[MAX_ARGUMENT];
+      size_t argument_count;
+      Type return_type;
+    } function;
+  } info;
+};
+
+struct SymbolItem {
+  SymbolInfo symbol_info;
+  Symbol tail;
+};
 
 #endif

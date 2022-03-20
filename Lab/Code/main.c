@@ -8,21 +8,21 @@ extern int yydebug;
 extern void yyrestart(FILE *);
 extern int yyparse();
 extern int yylex_destroy();
+extern void analysis(); // for semantic analysis
 
 extern int syntax_errors;
 extern int lexical_errors;
+int prev_lineno = 0; // for syntax error
 
 static struct Ast *ast_root;
 
-Symbol symbol_table[MAX_SYMBOL];
-size_t symbol_table_index = 0;
+Attribute attr_table[MAX_ATTR];
+size_t attr_table_index = 0;
 
 void *node_table[MAX_NODE];
 size_t node_table_index = 0;
 
-int prev_lineno = 0;
-
-void *log_malloc(size_t size) {
+void *log_node_malloc(size_t size) {
   void *res = malloc(size);
   node_table[node_table_index] = res;
   ++node_table_index;
@@ -30,7 +30,7 @@ void *log_malloc(size_t size) {
 }
 
 void make_root(struct Ast **root) {
-  (*root) = (struct Ast *)log_malloc(sizeof(struct Ast));
+  (*root) = (struct Ast *)log_node_malloc(sizeof(struct Ast));
   (*root)->type = _Program;
   (*root)->children_count = 0;
   (*root)->lineno = INT_MAX;
@@ -39,7 +39,7 @@ void make_root(struct Ast **root) {
 }
 
 void make_node(struct Ast **node, int type) {
-  (*node) = (struct Ast *)log_malloc(sizeof(struct Ast));
+  (*node) = (struct Ast *)log_node_malloc(sizeof(struct Ast));
   (*node)->type = type;
   (*node)->children_count = 0;
   (*node)->lineno = INT_MAX;
@@ -85,17 +85,17 @@ static void print_attr(int type, int index) {
   switch (type) {
   case _TYPE:
     /* case _RELOP: */
-    print_lower(symbol_names[symbol_table[index]._attr]);
-    /* printf("%s", symbol_names[symbol_table[index]._attr]); */
+    print_lower(unit_names[attr_table[index]._attr]);
+    /* printf("%s", unit_names[attr_table[index]._attr]); */
     break;
   case _INT:
-    printf("%d", symbol_table[index]._int);
+    printf("%d", attr_table[index]._int);
     break;
   case _FLOAT:
-    printf("%f", symbol_table[index]._float);
+    printf("%f", attr_table[index]._float);
     break;
   case _ID:
-    printf("%s", symbol_table[index]._string);
+    printf("%s", attr_table[index]._string);
     break;
   }
 }
@@ -107,7 +107,7 @@ static void print_tree(struct Ast *root, int indent) {
   }
 
   indented(indent);
-  printf("%s", symbol_names[root->type]);
+  printf("%s", unit_names[root->type]);
 
   switch (type) {
   case _TYPE:
@@ -116,7 +116,7 @@ static void print_tree(struct Ast *root, int indent) {
   case _FLOAT:
   case _ID:
     printf(": ");
-    print_attr(type, root->symbol_index);
+    print_attr(type, root->attr_index);
     break;
   default:
     if (type > _RETURN) { // non-terminal
@@ -164,6 +164,7 @@ int main(int argc, char *argv[]) {
 
   if (!syntax_errors && !lexical_errors) {
     print_tree(ast_root, 0);
+    analysis(ast_root);
   }
 
   clear_tree();

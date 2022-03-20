@@ -28,7 +28,7 @@ static void lexical_error() {
 static void install(int type, int attr) {
   DBG_PRINTF();
 
-  yylval.type_ast = (struct Ast *)log_malloc(sizeof(struct Ast));
+  yylval.type_ast = (struct Ast *)log_node_malloc(sizeof(struct Ast));
   yylval.type_ast->type = type;
   yylval.type_ast->children_count = 0;
   yylval.type_ast->lineno = yylineno;
@@ -36,31 +36,31 @@ static void install(int type, int attr) {
   switch (type) {
   case _RELOP:
   case _TYPE:
-    yylval.type_ast->symbol_index = symbol_table_index;
-    symbol_table[symbol_table_index]._attr = attr;
-    ++symbol_table_index;
+    yylval.type_ast->attr_index = attr_table_index;
+    attr_table[attr_table_index]._attr = attr;
+    ++attr_table_index;
     break;
   case _INT:
-    yylval.type_ast->symbol_index = symbol_table_index;
+    yylval.type_ast->attr_index = attr_table_index;
     sscanf(yytext, int_base_format[attr],
-           &symbol_table[symbol_table_index]._int);
-    ++symbol_table_index;
+           &attr_table[attr_table_index]._int);
+    ++attr_table_index;
     break;
   case _FLOAT:
     assert(attr == -1);
-    yylval.type_ast->symbol_index = symbol_table_index;
-    sscanf(yytext, "%f", &symbol_table[symbol_table_index]._float);
-    ++symbol_table_index;
+    yylval.type_ast->attr_index = attr_table_index;
+    sscanf(yytext, "%f", &attr_table[attr_table_index]._float);
+    ++attr_table_index;
     break;
   case _ID:
     assert(attr == -1);
-    yylval.type_ast->symbol_index = symbol_table_index;
-    sscanf(yytext, "%63s", symbol_table[symbol_table_index]._string);
-    ++symbol_table_index;
+    yylval.type_ast->attr_index = attr_table_index;
+    sscanf(yytext, "%63s", attr_table[attr_table_index]._string);
+    ++attr_table_index;
     break;
   default:
     assert(attr == -1);
-    yylval.type_ast->symbol_index = -1;
+    yylval.type_ast->attr_index = -1;
     break;
   }
 }

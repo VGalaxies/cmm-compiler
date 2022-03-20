@@ -1,3 +1,4 @@
 file ./parser
-b clear_tree
-r ../Test/temp.c
+b insert_symbol_table
+set print pretty on
+r ../Test/lab2/tmp.c

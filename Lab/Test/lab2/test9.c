@@ -1,0 +1,2 @@
+int func(int i) { return i; }
+int main() { func(1, 2); }
