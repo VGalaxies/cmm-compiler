@@ -1,2 +1,9 @@
-struct a;
-int a[3][4];
+int foo() {
+  int x;
+  int y;
+  {
+    int z;
+    int w;
+  }
+  return x;
+}

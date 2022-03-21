@@ -13,6 +13,7 @@
 #define panic(format, ...) printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__)
 #define log(format, ...) printf("\33[1;35m" format "\33[0m\n", ##__VA_ARGS__)
 #define info(format, ...) printf("\33[1;32m" format "\33[0m\n", ##__VA_ARGS__)
+#define action(format, ...) printf("\33[1;36m" format "\33[0m\n", ##__VA_ARGS__)
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
@@ -182,7 +183,7 @@ struct TypeItem {
     // 数组类型信息包括元素类型与数组大小构成
     struct {
       Type elem;
-      unsigned size;
+      size_t size;
     } array;
     // 结构体类型信息是一个链表
     FieldList structure;
@@ -206,7 +207,7 @@ struct SymbolInfoItem {
   union {
     Type type;
     struct {
-      Symbol arguments[MAX_ARGUMENT];
+      SymbolInfo arguments[MAX_ARGUMENT];
       size_t argument_count;
       Type return_type;
     } function;

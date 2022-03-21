@@ -75,7 +75,7 @@ static void print_lower(const char *s) {
 
 static void indented(int indent) {
   for (int i = 0; i < indent; ++i) {
-    printf(" ");
+    printf("  ");
   }
 }
 
@@ -127,7 +127,7 @@ static void print_tree(struct Ast *root, int indent) {
   printf("\n");
 
   for (int i = 0; i < root->children_count; ++i) {
-    print_tree(root->children[i], indent + 2);
+    print_tree(root->children[i], indent + 1);
   }
 }
 
