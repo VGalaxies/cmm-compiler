@@ -18,14 +18,14 @@ static void semantic_error(int type, int lineno) {
 static void *semantic_malloc_table[MAX_MALLOC];
 static size_t semantic_malloc_table_index = 0;
 
-void *log_semantic_malloc(size_t size) {
+static void *log_semantic_malloc(size_t size) {
   void *res = malloc(size);
   semantic_malloc_table[semantic_malloc_table_index] = res;
   ++semantic_malloc_table_index;
   return res;
 }
 
-void clear_semantic_malloc_table() {
+static void clear_semantic_malloc_table() {
   action("total %zu allocation(s)", semantic_malloc_table_index);
   for (size_t i = 0; i < semantic_malloc_table_index; ++i) {
     free(semantic_malloc_table[i]);
@@ -60,8 +60,8 @@ SymbolInfo find_symbol_table(int kind, const char *name) {
   return NULL;
 }
 
-void print_type(Type type);
-void print_structure_type(FieldList field) {
+static void print_type(Type type);
+static void print_structure_type(FieldList field) {
   if (field == NULL) {
     return;
   }
@@ -70,7 +70,7 @@ void print_structure_type(FieldList field) {
   print_structure_type(field->tail);
 }
 
-void print_type(Type type) {
+static void print_type(Type type) {
   assert(type);
   switch (type->kind) {
   case BASIC:
@@ -97,7 +97,7 @@ void print_type(Type type) {
   }
 }
 
-void print_symbol_info(SymbolInfo symbol_info) {
+static void print_symbol_info(SymbolInfo symbol_info) {
   printf("==%s== ", symbol_info->name);
   switch (symbol_info->kind) {
   case TypeDef:
@@ -123,7 +123,7 @@ void print_symbol_info(SymbolInfo symbol_info) {
   }
 }
 
-void print_symbol_table() {
+static void print_symbol_table() {
   print("------------------------");
   Symbol curr_symbol = symbol_table;
   while (curr_symbol) {
@@ -299,6 +299,35 @@ SymbolInfo struct_specifier(struct Ast *node) {
   return NULL;
 }
 
+static SymbolInfo int_type;
+static SymbolInfo float_type;
+
+static void built_in_type() {
+  // build int
+  {
+    int_type = (SymbolInfo)log_semantic_malloc(sizeof(struct SymbolInfoItem));
+    int_type->kind = VariableInfo; // assume
+    strcpy(int_type->name, "");    // useless
+
+    Type type = (Type)log_semantic_malloc(sizeof(struct TypeItem));
+    type->kind = BASIC;
+    type->u.basic = _INT;
+    int_type->info.type = type;
+  }
+
+  // build float
+  {
+    float_type = (SymbolInfo)log_semantic_malloc(sizeof(struct SymbolInfoItem));
+    float_type->kind = VariableInfo; // assume
+    strcpy(float_type->name, "");    // useless
+
+    Type type = (Type)log_semantic_malloc(sizeof(struct TypeItem));
+    type->kind = BASIC;
+    type->u.basic = _INT;
+    float_type->info.type = type;
+  }
+}
+
 SymbolInfo specifier(struct Ast *node) {
   info("hit %s", unit_names[node->type]);
   assert(node->type == _Specifier);
@@ -310,16 +339,12 @@ SymbolInfo specifier(struct Ast *node) {
     return struct_specifier(child);
   } else if (child->type == _TYPE) {
     /* Specifier -> TYPE */
-    SymbolInfo symbol_info =
-        (SymbolInfo)log_semantic_malloc(sizeof(struct SymbolInfoItem));
-    symbol_info->kind = VariableInfo; // assume
-    strcpy(symbol_info->name, "");    // useless
-
-    Type type = (Type)log_semantic_malloc(sizeof(struct TypeItem));
-    type->kind = BASIC;
-    type->u.basic = attr_table[child->attr_index]._attr;
-    symbol_info->info.type = type;
-    return symbol_info;
+    int attr = attr_table[child->attr_index]._attr;
+    if (attr == _INT) {
+      return int_type;
+    } else if (attr == _FLOAT) {
+      return float_type;
+    }
   }
 
   assert(0);
@@ -552,6 +577,69 @@ Type expression(struct Ast *node, int required_lval) {
    *     | INT
    *     | FLOAT */
 
+  // check lval
+  if (required_lval) {
+    if (node->children_count == 1) {
+      if (!(node->children[0]->type == _ID)) {
+        semantic_error(6, node->lineno);
+        return NULL;
+      }
+    }
+    if (node->children_count == 3) {
+      if (!(node->children[0]->type == _Exp &&
+            node->children[1]->type == _DOT &&
+            node->children[2]->type == _ID)) {
+        semantic_error(6, node->lineno);
+        return NULL;
+      }
+    }
+    if (node->children_count == 4) {
+      if (!(node->children[0]->type == _Exp && node->children[1]->type == _LB &&
+            node->children[2]->type == _Exp &&
+            node->children[3]->type == _RB)) {
+        semantic_error(6, node->lineno);
+        return NULL;
+      }
+    }
+  }
+
+  // handle
+  if (node->children[0]->type == _ID) {
+    const char *name = attr_table[node->children[0]->attr_index]._string;
+    if (node->children_count == 1) {
+      SymbolInfo symbol_info = find_symbol_table(VariableInfo, name);
+      if (symbol_info == NULL) {
+        semantic_error(1, node->children[0]->lineno);
+        return NULL;
+      }
+      return symbol_info->info.type;
+    }
+
+    // function call without argument
+    if (node->children_count == 3) {
+      SymbolInfo symbol_info = find_symbol_table(-1, name);
+      if (symbol_info == NULL) {
+        semantic_error(2, node->children[0]->lineno);
+        return NULL;
+      }
+      if (symbol_info->kind == VariableInfo) {
+        // variable is not function
+        semantic_error(11, node->children[0]->lineno);
+        return NULL;
+      }
+      if (symbol_info->kind == TypeDef) {
+        action("ignore like `struct A {...}; A();`");
+        return NULL;
+      }
+      return symbol_info->info.function.return_type;
+    }
+
+    // function call with argument
+    if (node->children_count == 4) {
+    }
+  }
+
+  return NULL;
 }
 
 void compound_statement(struct Ast *node, SymbolInfo function_symbol_info);
@@ -575,15 +663,15 @@ void statement(struct Ast *node, SymbolInfo function_symbol_info) {
   }
 
   if (node->children[0]->type == _RETURN) {
+    return;
   }
 
-  assert(0);
   return;
 }
 
 void statement_list(struct Ast *node, SymbolInfo function_symbol_info) {
   info("hit %s", unit_names[node->type]);
-  assert(node->type == _CompSt);
+  assert(node->type == _StmtList);
   /* StmtList -> Stmt StmtList | Stmt EMPTY */
   assert(node->children_count == 2);
 
@@ -593,6 +681,7 @@ void statement_list(struct Ast *node, SymbolInfo function_symbol_info) {
   } else if (node->children[1]->type == _StmtList) {
     statement(node->children[0], function_symbol_info);
     statement_list(node->children[1], function_symbol_info);
+    return;
   }
 
   assert(0);
@@ -606,8 +695,36 @@ void compound_statement(struct Ast *node, SymbolInfo function_symbol_info) {
   assert(node->children_count == 4);
 
   definition_list(node->children[1], NULL);
-  statement_list(node->children[2], function_symbol_info);
+  if (node->children[2]->type != _EMPTY) {
+    statement_list(node->children[2], function_symbol_info);
+  }
   return;
+}
+
+static void construct_insert_function_compst(struct Ast *node,
+                                             Type return_type) {
+  SymbolInfo function_symbol_info =
+      (SymbolInfo)log_semantic_malloc(sizeof(struct SymbolInfoItem));
+  function_symbol_info->kind = FunctionInfo;
+  strcpy(function_symbol_info->name,
+         ""); // filled when in function declaration
+
+  function_symbol_info->info.function.return_type =
+      (Type)log_semantic_malloc(sizeof(struct TypeItem));
+  // serve as return type of function
+  memcpy(function_symbol_info->info.function.return_type, return_type,
+         sizeof(struct TypeItem));
+
+  function_symbol_info->info.function.argument_count = 0;
+  function_declaration(node->children[1], function_symbol_info);
+
+  // if success:
+  // 1. insert into symbol table
+  // 2. enter CompSt
+  if (strcmp("", function_symbol_info->name)) {
+    insert_symbol_table(function_symbol_info);
+    compound_statement(node->children[2], function_symbol_info);
+  }
 }
 
 void external_definition(struct Ast *node) {
@@ -710,23 +827,7 @@ void external_definition(struct Ast *node) {
                  sizeof(struct SymbolInfoItem));
           insert_symbol_table(copied_symbol_info);
 
-          // serve as return type of function
-          SymbolInfo function_symbol_info =
-              (SymbolInfo)log_semantic_malloc(sizeof(struct SymbolInfoItem));
-          function_symbol_info->kind = FunctionInfo;
-          strcpy(function_symbol_info->name,
-                 ""); // filled when in function declaration
-          function_symbol_info->info.function.return_type =
-              (Type)log_semantic_malloc(sizeof(struct TypeItem));
-          memcpy(function_symbol_info->info.function.return_type,
-                 symbol_info->info.type, sizeof(struct TypeItem));
-          function_symbol_info->info.function.argument_count = 0;
-          function_declaration(node->children[1], function_symbol_info);
-
-          // insert into symbol table
-          if (strcmp("", function_symbol_info->name)) {
-            insert_symbol_table(function_symbol_info);
-          }
+          construct_insert_function_compst(node, symbol_info->info.type);
         }
         return;
       } else if (symbol_info->kind == VariableInfo) {
@@ -737,42 +838,11 @@ void external_definition(struct Ast *node) {
             // undefined structure
             semantic_error(17, node->children[0]->lineno);
           } else {
-            // serve as return type of function
-            SymbolInfo function_symbol_info =
-                (SymbolInfo)log_semantic_malloc(sizeof(struct SymbolInfoItem));
-            function_symbol_info->kind = FunctionInfo;
-            strcpy(function_symbol_info->name,
-                   ""); // filled when in function declaration
-            function_symbol_info->info.function.return_type =
-                (Type)log_semantic_malloc(sizeof(struct TypeItem));
-            memcpy(function_symbol_info->info.function.return_type,
-                   found_symbol_info->info.type, sizeof(struct TypeItem));
-            function_symbol_info->info.function.argument_count = 0;
-            function_declaration(node->children[1], function_symbol_info);
-
-            // insert into symbol table
-            if (strcmp("", function_symbol_info->name)) {
-              insert_symbol_table(function_symbol_info);
-            }
+            construct_insert_function_compst(node,
+                                             found_symbol_info->info.type);
           }
         } else { // like `int a;` or `struct {...} a;`
-          // serve as return type of function
-          SymbolInfo function_symbol_info =
-              (SymbolInfo)log_semantic_malloc(sizeof(struct SymbolInfoItem));
-          function_symbol_info->kind = FunctionInfo;
-          strcpy(function_symbol_info->name,
-                 ""); // filled when in function declaration
-          function_symbol_info->info.function.return_type =
-              (Type)log_semantic_malloc(sizeof(struct TypeItem));
-          memcpy(function_symbol_info->info.function.return_type,
-                 symbol_info->info.type, sizeof(struct TypeItem));
-          function_symbol_info->info.function.argument_count = 0;
-          function_declaration(node->children[1], function_symbol_info);
-
-          // insert into symbol table
-          if (strcmp("", function_symbol_info->name)) {
-            insert_symbol_table(function_symbol_info);
-          }
+          construct_insert_function_compst(node, symbol_info->info.type);
         }
         return;
       }
@@ -813,6 +883,7 @@ void entry(struct Ast *node) {
 }
 
 void analysis(struct Ast *root) {
+  built_in_type();
   entry(root);
   print_symbol_table();
   clear_semantic_malloc_table();

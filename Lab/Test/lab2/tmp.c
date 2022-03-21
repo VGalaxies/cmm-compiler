@@ -5,5 +5,6 @@ int foo() {
     int z;
     int w;
   }
-  return x;
+  bar();
+  z();
 }

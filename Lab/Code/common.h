@@ -135,7 +135,7 @@ enum {
   _(DecList)                                                                   \
   _(Dec)                                                                       \
   _(Exp)                                                                       \
-  _(Args)
+  _(Args)                                                                      \
 
 #define UNIT_NAME(name) [_##name] = #name,
 static const char *unit_names[] = {UNIT_KEYS(UNIT_NAME)};
