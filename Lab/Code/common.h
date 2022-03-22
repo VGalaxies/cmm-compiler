@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +21,7 @@
 
 enum {
   // terminal
-  _LT,
+  _LT, // 0
   _LE,
   _EQ,
   _NE,
@@ -30,7 +31,7 @@ enum {
   _ASSIGNOP,
   _SEMI,
   _COMMA,
-  _DOT,
+  _DOT, // 10
   _LP,
   _RP,
   _LB,
@@ -40,7 +41,7 @@ enum {
   _PLUS,
   _MINUS,
   _STAR,
-  _DIV,
+  _DIV, // 20
   _AND,
   _OR,
   _NOT,
@@ -50,7 +51,7 @@ enum {
   _ID,
   _IF,
   _ELSE,
-  _WHILE,
+  _WHILE, // 30
   _STRUCT,
   _RETURN,
 
@@ -62,7 +63,7 @@ enum {
   _Specifier,
   _StructSpecifier,
   _OptTag,
-  _Tag,
+  _Tag, // 40
   _VarDec,
   _FunDec,
   _VarList,
@@ -72,7 +73,7 @@ enum {
   _Stmt,
   _DefList,
   _Def,
-  _DecList,
+  _DecList, // 50
   _Dec,
   _Exp,
   _Args,
@@ -135,15 +136,12 @@ enum {
   _(DecList)                                                                   \
   _(Dec)                                                                       \
   _(Exp)                                                                       \
-  _(Args)                                                                      \
+  _(Args)
 
 #define UNIT_NAME(name) [_##name] = #name,
 static const char *unit_names[] = {UNIT_KEYS(UNIT_NAME)};
 
 #define MAX_CHILDREN 8
-#define MAX_ATTR 1024
-#define MAX_NODE 10240
-
 struct Ast {
   int lineno;
   int attr_index;
@@ -159,13 +157,13 @@ typedef union {
   char _string[64]; // for ID
 } Attribute;
 
+#define MAX_ATTR 1024
 extern Attribute attr_table[MAX_ATTR];
 extern size_t attr_table_index;
 
-extern void *node_table[MAX_NODE];
-extern size_t node_table_index;
+#define INIT_MALLOC_SIZE 1024
+extern void *log_malloc(size_t size);
 
-extern void *log_node_malloc(size_t size);
 extern void make_root(struct Ast **root);
 extern void make_node(struct Ast **node, int type);
 extern void make_children(struct Ast **root, int count, ...);
@@ -196,11 +194,12 @@ struct FieldListItem {
   FieldList tail; // 下一个域
 };
 
-#define MAX_ARGUMENT 16
 #define MAX_BRACKET 16
+
 typedef struct SymbolItem *Symbol;
 typedef struct SymbolInfoItem *SymbolInfo;
 
+#define MAX_ARGUMENT 16
 struct SymbolInfoItem {
   enum { TypeDef, VariableInfo, FunctionInfo } kind;
   char name[64];

@@ -1,5 +1,5 @@
 file ./parser
 set print pretty on
 # b semantic.c:535
-b statement_list
-r ../Test/lab2/tmp.c
+b compound_statement
+r ../Test/lab2/test4.c

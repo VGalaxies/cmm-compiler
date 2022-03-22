@@ -28,7 +28,7 @@ static void lexical_error() {
 static void install(int type, int attr) {
   DBG_PRINTF();
 
-  yylval.type_ast = (struct Ast *)log_node_malloc(sizeof(struct Ast));
+  yylval.type_ast = (struct Ast *)log_malloc(sizeof(struct Ast));
   yylval.type_ast->type = type;
   yylval.type_ast->children_count = 0;
   yylval.type_ast->lineno = yylineno;

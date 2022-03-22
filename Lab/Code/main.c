@@ -1,4 +1,5 @@
 #include "common.h"
+#include <stdlib.h>
 
 /* #define SYNTAX_DEBUG */
 #ifdef SYNTAX_DEBUG
@@ -14,23 +15,48 @@ extern int syntax_errors;
 extern int lexical_errors;
 int prev_lineno = 0; // for syntax error
 
-static struct Ast *ast_root;
-
 Attribute attr_table[MAX_ATTR];
 size_t attr_table_index = 0;
 
-void *node_table[MAX_NODE];
-size_t node_table_index = 0;
+/* memory management */
 
-void *log_node_malloc(size_t size) {
+void **malloc_table = NULL;
+size_t malloc_table_index = 0;
+size_t malloc_table_size = 0;
+
+void *log_malloc(size_t size) {
+  if (malloc_table_size == 0) {
+    malloc_table = (void **)malloc(INIT_MALLOC_SIZE * sizeof(void *));
+    malloc_table_size = INIT_MALLOC_SIZE;
+  }
+
+  if (malloc_table_index == malloc_table_size) {
+    malloc_table = (void **)realloc(malloc_table, INIT_MALLOC_SIZE * 2 * sizeof(void *));
+    malloc_table_size *= 2;
+  }
+
   void *res = malloc(size);
-  node_table[node_table_index] = res;
-  ++node_table_index;
+  malloc_table[malloc_table_index] = res;
+  ++malloc_table_index;
   return res;
 }
 
+static void clear_malloc() {
+  action("total %zu allocation(s)", malloc_table_index);
+  for (size_t i = 0; i < malloc_table_index; ++i) {
+    free(malloc_table[i]);
+    malloc_table[i] = NULL;
+  }
+  free(malloc_table);
+  malloc_table = NULL;
+}
+
+/* build ast tree */
+
+static struct Ast *ast_root;
+
 void make_root(struct Ast **root) {
-  (*root) = (struct Ast *)log_node_malloc(sizeof(struct Ast));
+  (*root) = (struct Ast *)log_malloc(sizeof(struct Ast));
   (*root)->type = _Program;
   (*root)->children_count = 0;
   (*root)->lineno = INT_MAX;
@@ -39,7 +65,7 @@ void make_root(struct Ast **root) {
 }
 
 void make_node(struct Ast **node, int type) {
-  (*node) = (struct Ast *)log_node_malloc(sizeof(struct Ast));
+  (*node) = (struct Ast *)log_malloc(sizeof(struct Ast));
   (*node)->type = type;
   (*node)->children_count = 0;
   (*node)->lineno = INT_MAX;
@@ -131,13 +157,6 @@ static void print_tree(struct Ast *root, int indent) {
   }
 }
 
-static void clear_tree() {
-  for (size_t i = 0; i < node_table_index; ++i) {
-    free(node_table[i]);
-    node_table[i] = NULL;
-  }
-}
-
 static void print_usage(int argc, char *argv[]) {
   printf("Usage: %s [FILE]\n", argv[0]);
 }
@@ -167,7 +186,7 @@ int main(int argc, char *argv[]) {
     analysis(ast_root);
   }
 
-  clear_tree();
+  clear_malloc();
   yylex_destroy();
   fclose(f);
 
