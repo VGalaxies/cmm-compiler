@@ -5,15 +5,15 @@
 int semantic_errors = 0;
 static void semantic_error(int type, int lineno) {
   ++semantic_errors;
-  panic("Error type %d at Line %d.", type, lineno);
+  print("Error type %d at Line %d: Semantic error.", type, lineno);
 }
 
 /* symbol table */
 
-Symbol symbol_table = NULL;
+static Symbol symbol_table = NULL;
 
 void insert_symbol_table(SymbolInfo symbol_info) {
-  action("insert symbol %s", symbol_info->name);
+  action("insert symbol %s\n", symbol_info->name);
 
   Symbol symbol = (Symbol)log_malloc(sizeof(struct SymbolItem));
   symbol->tail = symbol_table;
@@ -22,7 +22,7 @@ void insert_symbol_table(SymbolInfo symbol_info) {
 }
 
 SymbolInfo find_symbol_table(int kind, const char *name) {
-  action("find symbol %s", name);
+  action("find symbol %s\n", name);
 
   Symbol curr_symbol = symbol_table;
   while (curr_symbol) {
@@ -41,7 +41,7 @@ static void print_structure_type(FieldList field) {
   if (field == NULL) {
     return;
   }
-  printf(" .%s\n", field->name);
+  info(" .%s\n", field->name);
   print_type(field->type);
   print_structure_type(field->tail);
 }
@@ -51,21 +51,21 @@ static void print_type(Type type) {
   switch (type->kind) {
   case BASIC:
     if (type->u.basic == _INT) {
-      log("(int)");
+      info("(int)\n");
     } else if (type->u.basic == _FLOAT) {
-      log("(float)");
+      info("(float)\n");
     } else {
       assert(0);
     }
     break;
   case ARRAY:
-    printf("[%zu]", type->u.array.size);
+    info("[%zu]", type->u.array.size);
     print_type(type->u.array.elem);
     break;
   case STRUCTURE:
-    log("(structure)");
+    info("(structure)\n");
     print_structure_type(type->u.structure);
-    log("(end structure)");
+    info("(end structure)\n");
     break;
   default:
     assert(0);
@@ -74,21 +74,21 @@ static void print_type(Type type) {
 }
 
 static void print_symbol_info(SymbolInfo symbol_info) {
-  printf("==%s== ", symbol_info->name);
+  info("==%s== ", symbol_info->name);
   switch (symbol_info->kind) {
   case TypeDef:
-    log("[TypeDef]");
+    info("[TypeDef]\n");
     print_type(symbol_info->info.type);
     break;
   case VariableInfo:
-    log("[VariableInfo]");
+    info("[VariableInfo]\n");
     print_type(symbol_info->info.type);
     break;
   case FunctionInfo:
-    log("[FunctionInfo]");
-    log("{return type}");
+    info("[FunctionInfo]\n");
+    info("{return type}\n");
     print_type(symbol_info->info.function.return_type);
-    log("{arguments}");
+    info("{arguments}\n");
     for (size_t i = 0; i < symbol_info->info.function.argument_count; ++i) {
       print_symbol_info(symbol_info->info.function.arguments[i]);
     }
@@ -100,14 +100,16 @@ static void print_symbol_info(SymbolInfo symbol_info) {
 }
 
 static void print_symbol_table() {
-  print("------------------------");
+  info(">>>\n");
   Symbol curr_symbol = symbol_table;
   while (curr_symbol) {
     print_symbol_info(curr_symbol->symbol_info);
-    print("------------------------");
     curr_symbol = curr_symbol->tail;
+    info(">>>\n");
   }
 }
+
+void print_symbol_table_interface() { print_symbol_table(); }
 
 /* type system */
 
@@ -252,7 +254,7 @@ SymbolInfo specifier(struct Ast *node);
 Type expression(struct Ast *node, int required_lval);
 
 void declaration(struct Ast *node, Type type, SymbolInfo struct_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Dec);
 
   /* Dec -> VarDec */
@@ -285,7 +287,7 @@ void declaration(struct Ast *node, Type type, SymbolInfo struct_symbol_info) {
 
 void declaration_list(struct Ast *node, Type type,
                       SymbolInfo struct_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _DecList);
 
   /* DecList -> Dec */
@@ -306,7 +308,7 @@ void declaration_list(struct Ast *node, Type type,
 }
 
 void definition(struct Ast *node, SymbolInfo struct_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Def);
 
   /* Def -> Specifier DecList SEMI */
@@ -364,13 +366,13 @@ void definition_list(struct Ast *node, SymbolInfo struct_symbol_info) {
   /* StructSpecifier -> STRUCT OptTag LC DefList RC */
   /* CompSt -> LC DefList StmtList RC */
 
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _DefList);
 
   /* DefList -> Def EMPTY */
   if (check_node(node, 2, _Def, _EMPTY)) {
     definition(node->children[0], struct_symbol_info);
-    info("hit EMPTY");
+    action("hit EMPTY\n");
     return;
   }
 
@@ -386,7 +388,7 @@ void definition_list(struct Ast *node, SymbolInfo struct_symbol_info) {
 }
 
 SymbolInfo struct_specifier(struct Ast *node) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _StructSpecifier);
 
   /* StructSpecifier -> STRUCT Tag */
@@ -396,7 +398,7 @@ SymbolInfo struct_specifier(struct Ast *node) {
     symbol_info->kind = VariableInfo; // assume
     strcpy(symbol_info->name,
            /* Tag -> ID */
-           attr_table[node->children[1]->children[0]->attr_index]._string);
+           get_attribute(node->children[1]->children[0]->attr_index)._string);
 
     symbol_info->info.type = NULL; // scan the table to find info
     return symbol_info;
@@ -414,7 +416,7 @@ SymbolInfo struct_specifier(struct Ast *node) {
       struct_symbol_info->kind = TypeDef;
       strcpy(struct_symbol_info->name,
              /* OptTag -> ID */
-             attr_table[node->children[1]->children[0]->attr_index]._string);
+             get_attribute(node->children[1]->children[0]->attr_index)._string);
     } else {
       return NULL;
     }
@@ -433,7 +435,7 @@ SymbolInfo struct_specifier(struct Ast *node) {
 }
 
 SymbolInfo specifier(struct Ast *node) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Specifier);
 
   /* Specifier -> StructSpecifier */
@@ -443,7 +445,7 @@ SymbolInfo specifier(struct Ast *node) {
 
   /* Specifier -> TYPE */
   if (check_node(node, 1, _TYPE)) {
-    int attr = attr_table[node->children[0]->attr_index]._attr;
+    int attr = get_attribute(node->children[0]->attr_index)._attr;
     if (attr == _INT) {
       return int_type;
     } else if (attr == _FLOAT) {
@@ -457,7 +459,7 @@ SymbolInfo specifier(struct Ast *node) {
 
 void variable_declaration(struct Ast *node, Type type,
                           SymbolInfo filled_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _VarDec);
   assert(type);
 
@@ -470,7 +472,7 @@ void variable_declaration(struct Ast *node, Type type,
       /* VarDec -> VarDec LB INT RB */
       assert(curr_node->children[2]->type == _INT); // subscripts are integers
       dimensions[curr_dimension] =
-          attr_table[curr_node->children[2]->attr_index]._int;
+          get_attribute(curr_node->children[2]->attr_index)._int;
       curr_node = curr_node->children[0];
       curr_dimension++;
     } else if (curr_node->children_count == 1) {
@@ -478,7 +480,7 @@ void variable_declaration(struct Ast *node, Type type,
       curr_node = curr_node->children[0];
 
       // scan the table first
-      if (find_symbol_table(-1, attr_table[curr_node->attr_index]._string) !=
+      if (find_symbol_table(-1, get_attribute(curr_node->attr_index)._string) !=
           NULL) {
         if (filled_symbol_info) {
           // TODO: multi-definition of field name
@@ -506,16 +508,15 @@ void variable_declaration(struct Ast *node, Type type,
           (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
       symbol_info->kind = VariableInfo;
       symbol_info->info.type = tail_type;
-      strcpy(symbol_info->name, attr_table[curr_node->attr_index]._string);
+      strcpy(symbol_info->name, get_attribute(curr_node->attr_index)._string);
       insert_symbol_table(symbol_info);
 
       // fill into structure or function
       if (filled_symbol_info) {
         if (filled_symbol_info->kind != FunctionInfo) {
           assert(filled_symbol_info->info.type);
-          FieldList field =
-              (FieldList)log_malloc(sizeof(struct FieldListItem));
-          strcpy(field->name, attr_table[curr_node->attr_index]._string);
+          FieldList field = (FieldList)log_malloc(sizeof(struct FieldListItem));
+          strcpy(field->name, get_attribute(curr_node->attr_index)._string);
           Type struct_type = (Type)log_malloc(sizeof(struct TypeItem));
           memcpy(struct_type, tail_type, sizeof(struct TypeItem));
           field->type = struct_type;
@@ -545,7 +546,7 @@ void variable_declaration(struct Ast *node, Type type,
 }
 
 void external_declaration_list(struct Ast *node, Type type) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDecList);
   assert(type);
 
@@ -566,7 +567,7 @@ void external_declaration_list(struct Ast *node, Type type) {
 }
 
 void parameter_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ParamDec);
 
   /* ParamDec -> Specifier VarDec */
@@ -621,7 +622,7 @@ void parameter_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
 }
 
 void variable_list(struct Ast *node, SymbolInfo function_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _VarList);
 
   /* VarList -> ParamDec */
@@ -642,11 +643,11 @@ void variable_list(struct Ast *node, SymbolInfo function_symbol_info) {
 }
 
 void function_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _FunDec);
 
   if (find_symbol_table(
-          -1, attr_table[node->children[0]->attr_index]._string) != NULL) {
+          -1, get_attribute(node->children[0]->attr_index)._string) != NULL) {
     // multi-definition of function name
     semantic_error(4, node->children[0]->lineno);
     return;
@@ -654,7 +655,7 @@ void function_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
 
   // fill function name
   strcpy(function_symbol_info->name,
-         attr_table[node->children[0]->attr_index]._string);
+         get_attribute(node->children[0]->attr_index)._string);
 
   /* FunDec -> ID LP RP */
   if (check_node(node, 3, _ID, _LP, _RP)) {
@@ -673,7 +674,7 @@ void function_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
 }
 
 Type arguments(struct Ast *node, SymbolInfo function_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Args);
 
   /* Args : Exp COMMA Args
@@ -727,7 +728,7 @@ Type arguments(struct Ast *node, SymbolInfo function_symbol_info) {
 }
 
 Type expression(struct Ast *node, int required_lval) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Exp);
   /* Exp : Exp ASSIGNOP Exp
    *     | Exp AND Exp
@@ -762,7 +763,7 @@ Type expression(struct Ast *node, int required_lval) {
   // identifier
   if (check_node(node, 1, _ID)) {
     SymbolInfo symbol_info = find_symbol_table(
-        VariableInfo, attr_table[node->children[0]->attr_index]._string);
+        VariableInfo, get_attribute(node->children[0]->attr_index)._string);
     if (symbol_info == NULL) {
       semantic_error(1, node->children[0]->lineno);
       return NULL;
@@ -774,7 +775,7 @@ Type expression(struct Ast *node, int required_lval) {
   if (check_node(node, 3, _ID, _LP, _RP) ||
       check_node(node, 4, _ID, _LP, _Args, _RP)) {
     SymbolInfo symbol_info = find_symbol_table(
-        -1, attr_table[node->children[0]->attr_index]._string);
+        -1, get_attribute(node->children[0]->attr_index)._string);
     if (symbol_info == NULL) {
       semantic_error(2, node->children[0]->lineno);
       return NULL;
@@ -875,7 +876,7 @@ Type expression(struct Ast *node, int required_lval) {
 
     // assume no need to scan symbol table
     Type res = scan_structure_field(
-        structure, attr_table[node->children[2]->attr_index]._string);
+        structure, get_attribute(node->children[2]->attr_index)._string);
     if (res == NULL) {
       // access undefined field
       semantic_error(14, node->children[2]->lineno);
@@ -933,7 +934,7 @@ Type expression(struct Ast *node, int required_lval) {
 
 void compound_statement(struct Ast *node, SymbolInfo function_symbol_info);
 void statement(struct Ast *node, SymbolInfo function_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Stmt);
   /* Stmt : Exp SEMI
    *      | CompSt
@@ -996,13 +997,13 @@ void statement(struct Ast *node, SymbolInfo function_symbol_info) {
 }
 
 void statement_list(struct Ast *node, SymbolInfo function_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _StmtList);
 
   /* StmtList -> Stmt EMPTY */
   if (check_node(node, 2, _Stmt, _EMPTY)) {
     statement(node->children[0], function_symbol_info);
-    info("hit EMPTY");
+    action("hit EMPTY\n");
     return;
   }
 
@@ -1018,7 +1019,7 @@ void statement_list(struct Ast *node, SymbolInfo function_symbol_info) {
 }
 
 void compound_statement(struct Ast *node, SymbolInfo function_symbol_info) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _CompSt);
 
   /* CompSt -> LC DefList StmtList RC */
@@ -1061,7 +1062,7 @@ static void construct_insert_function_compst(struct Ast *node,
 }
 
 void external_definition(struct Ast *node) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDef);
 
   /* ExtDef -> Specifier SEMI */
@@ -1071,16 +1072,16 @@ void external_definition(struct Ast *node) {
     if (symbol_info->kind == VariableInfo) {
       if (symbol_info->info.type == NULL) {
         // ignore like `struct A;`
-        action("ignore like `struct A;`");
+        action("ignore like `struct A;`\n");
         return;
       } else {
         if (symbol_info->info.type->kind == BASIC) {
           // ignore like `int;`
-          action("ignore like `int;`");
+          action("ignore like `int;`\n");
           return;
         } else if (symbol_info->info.type->kind == STRUCTURE) {
           // ignore like `struct {...};`
-          action("ignore like `struct {...};`");
+          action("ignore like `struct {...};`\n");
           return;
         }
       }
@@ -1191,12 +1192,12 @@ void external_definition(struct Ast *node) {
 }
 
 void external_definition_list(struct Ast *node) {
-  info("hit %s", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDefList);
 
   if (check_node(node, 2, _ExtDef, _EMPTY)) {
     external_definition(node->children[0]);
-    info("hit EMPTY");
+    action("hit EMPTY\n");
     return;
   }
 
@@ -1210,8 +1211,8 @@ void external_definition_list(struct Ast *node) {
   return;
 }
 
-void entry(struct Ast *node) {
-  info("hit %s", unit_names[node->type]);
+void program(struct Ast *node) {
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Program);
 
   if (check_node(node, 1, _ExtDefList)) {
@@ -1225,6 +1226,5 @@ void entry(struct Ast *node) {
 
 void analysis(struct Ast *root) {
   build_naked_type();
-  entry(root);
-  print_symbol_table();
+  program(root);
 }

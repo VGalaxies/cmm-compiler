@@ -3,27 +3,27 @@
 #include "common.h"
 #include "syntax.tab.h"
 
-/* #define LEXICAL_DEBUG */
-#ifdef LEXICAL_DEBUG
 #define DBG_PRINTF() log("line %d | token %s", yylineno, yytext);
-#else
-#define DBG_PRINTF()
-#endif
+
+int lexical_errors = 0;
+static void lexical_error() {
+  ++lexical_errors;
+  print("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext);
+}
+
+static Attribute attr_table[MAX_ATTR];
+static size_t attr_table_index = 0;
+
+Attribute get_attribute(size_t index) {
+  return attr_table[index];
+}
 
 enum { _OCT, _DEC, _HEX, };
-
 static const char *int_base_format[] = {
     [_OCT] = "%o",
     [_DEC] = "%d",
     [_HEX] = "%x",
 };
-
-int lexical_errors = 0;
-static void lexical_error() {
-  ++lexical_errors;
-  /* panic("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext); */
-  print("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext);
-}
 
 static void install(int type, int attr) {
   DBG_PRINTF();

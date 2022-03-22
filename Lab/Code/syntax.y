@@ -2,15 +2,127 @@
 
 #include "lex.yy.c"
 
-extern int prev_lineno;
-
 int syntax_errors = 0;
-/* static int last_error_lineno = -1; // avoid repeated errors */
-void yyerror(const char *);
+
+static int prev_lineno = 0; // for syntax error
+static struct Ast *ast_root;
+
 static void syntax_error(struct Ast * node) {
-  /* syntax_errors++; */
-  /* panic("Error type B at Line [prev_lineno %d | node->lineno %d]: Syntax error.", prev_lineno, node->lineno); */
+  // do nothing
 }
+
+void yyerror(const char *s) {
+  syntax_errors++;
+  print("Error type B at Line %d: Syntax error.", prev_lineno);
+}
+
+static void make_root(struct Ast **root) {
+  (*root) = (struct Ast *)log_malloc(sizeof(struct Ast));
+  (*root)->type = _Program;
+  (*root)->children_count = 0;
+  (*root)->lineno = INT_MAX;
+
+  ast_root = (*root);
+}
+
+static void make_node(struct Ast **node, int type) {
+  (*node) = (struct Ast *)log_malloc(sizeof(struct Ast));
+  (*node)->type = type;
+  (*node)->children_count = 0;
+  (*node)->lineno = INT_MAX;
+}
+
+static void make_children(struct Ast **root, int count, ...) {
+  int lineno = INT_MAX;
+
+  va_list valist;
+  va_start(valist, count);
+
+  for (int i = 0; i < count; ++i) {
+    struct Ast *node = va_arg(valist, struct Ast *);
+    (*root)->children[i] = node;
+    lineno = MIN(lineno, node->lineno); // assume
+  }
+
+  va_end(valist);
+
+  assert(lineno != INT_MAX);
+  (*root)->lineno = lineno;
+  (*root)->children_count = count;
+
+  prev_lineno = lineno;
+}
+
+static void print_lower(const char *s) {
+  size_t length = strlen(s);
+  for (size_t i = 0; i < length; ++i) {
+    putc(tolower(s[i]), stdout);
+  }
+}
+
+static void indented(int indent) {
+  for (int i = 0; i < indent; ++i) {
+    printf("  ");
+  }
+}
+
+static void print_attr(int type, int index) {
+  assert(index >= 0);
+
+  switch (type) {
+  case _TYPE:
+    print_lower(unit_names[get_attribute(index)._attr]);
+    break;
+  case _INT:
+    printf("%d", get_attribute(index)._int);
+    break;
+  case _FLOAT:
+    printf("%f", get_attribute(index)._float);
+    break;
+  case _ID:
+    printf("%s", get_attribute(index)._string);
+    break;
+  }
+}
+
+static void print_tree(struct Ast *root, int indent) {
+  int type = root->type;
+  if (type == _EMPTY) {
+    return;
+  }
+
+  indented(indent);
+  printf("%s", unit_names[root->type]);
+
+  switch (type) {
+  case _TYPE:
+  case _INT:
+  case _FLOAT:
+  case _ID:
+    printf(": ");
+    print_attr(type, root->attr_index);
+    break;
+  default:
+    if (type > _RETURN) { // non-terminal
+      printf(" (%d)", root->lineno);
+    }
+    break;
+  }
+  printf("\n");
+
+  for (int i = 0; i < root->children_count; ++i) {
+    print_tree(root->children[i], indent + 1);
+  }
+}
+
+void print_ast_tree_interface() {
+  print_tree(ast_root, 0);
+}
+
+struct Ast *get_ast_root() {
+  return ast_root;
+}
+
 
 %}
 
@@ -136,9 +248,3 @@ Args : Exp COMMA Args { make_node(&$$, _Args); make_children(&$$, 3, $1, $2, $3)
 ;
 
 %%
-
-void yyerror(const char *s) {
-  syntax_errors++;
-  /* log("Error type B at Line [prev %d | curr %d]: Syntax error.", prev_lineno, yylineno); */
-  print("Error type B at Line %d: Syntax error.", prev_lineno);
-}

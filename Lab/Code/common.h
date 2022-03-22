@@ -10,14 +10,37 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* debug control */
+
+// #define LEXICAL_DEBUG
+// #define SYNTAX_DEBUG
+// #define SEMANTIC_DEBUG
+
+/* debug info */
+
 #define print(format, ...) printf(format "\n", ##__VA_ARGS__)
 #define panic(format, ...) printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__)
+
+#ifdef LEXICAL_DEBUG
 #define log(format, ...) printf("\33[1;35m" format "\33[0m\n", ##__VA_ARGS__)
-#define info(format, ...) printf("\33[1;32m" format "\33[0m\n", ##__VA_ARGS__)
-#define action(format, ...) printf("\33[1;36m" format "\33[0m\n", ##__VA_ARGS__)
+#else
+#define log(format, ...)
+#endif
+
+#ifdef SEMANTIC_DEBUG
+#define info(format, ...) printf("\33[1;32m" format "\33[0m", ##__VA_ARGS__)
+#define action(format, ...) printf("\33[1;36m" format "\33[0m", ##__VA_ARGS__)
+#else
+#define info(format, ...)
+#define action(format, ...)
+#endif
+
+/* macros */
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
+
+/* units */
 
 enum {
   // terminal
@@ -141,6 +164,8 @@ enum {
 #define UNIT_NAME(name) [_##name] = #name,
 static const char *unit_names[] = {UNIT_KEYS(UNIT_NAME)};
 
+/* syntax AST interface */
+
 #define MAX_CHILDREN 8
 struct Ast {
   int lineno;
@@ -150,6 +175,11 @@ struct Ast {
   struct Ast *children[MAX_CHILDREN];
 };
 
+extern void print_ast_tree_interface();
+extern struct Ast *get_ast_root();
+
+/* lexical attribute interface */
+
 typedef union {
   int _attr;        // for TYPE or RELOP
   unsigned _int;    // for INT
@@ -158,17 +188,18 @@ typedef union {
 } Attribute;
 
 #define MAX_ATTR 1024
-extern Attribute attr_table[MAX_ATTR];
-extern size_t attr_table_index;
+extern Attribute get_attribute(size_t index);
+
+/* memory management interface */
 
 #define INIT_MALLOC_SIZE 1024
 extern void *log_malloc(size_t size);
 
-extern void make_root(struct Ast **root);
-extern void make_node(struct Ast **node, int type);
-extern void make_children(struct Ast **root, int count, ...);
+/* semantic interface */
 
-/* semantic part */
+extern void print_symbol_table_interface();
+
+/* semantic type system */
 
 typedef struct TypeItem *Type;
 typedef struct FieldListItem *FieldList;
@@ -194,12 +225,14 @@ struct FieldListItem {
   FieldList tail; // 下一个域
 };
 
+/* semantic symbol */
+
 #define MAX_BRACKET 16
+#define MAX_ARGUMENT 16
 
 typedef struct SymbolItem *Symbol;
 typedef struct SymbolInfoItem *SymbolInfo;
 
-#define MAX_ARGUMENT 16
 struct SymbolInfoItem {
   enum { TypeDef, VariableInfo, FunctionInfo } kind;
   char name[64];
