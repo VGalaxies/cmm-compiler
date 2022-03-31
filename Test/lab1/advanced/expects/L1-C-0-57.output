@@ -1,0 +1,90 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: float
+      FunDec (1)
+        ID: uDOI8dzsEni33lz8f
+        LP
+        RP
+      CompSt (1)
+        LC
+        DefList (2)
+          Def (2)
+            Specifier (2)
+              StructSpecifier (2)
+                STRUCT
+                Tag (2)
+                  ID: b
+            DecList (2)
+              Dec (2)
+                VarDec (2)
+                  ID: tf6Nc88c0k
+                ASSIGNOP
+                Exp (2)
+                  ID: V
+            SEMI
+          DefList (3)
+        StmtList (3)
+          Stmt (3)
+            IF
+            LP
+            Exp (3)
+              ID: Hwa3n6Q2bd2FFMpIF
+            RP
+            Stmt (3)
+              Exp (3)
+                ID: jix2g
+              SEMI
+            ELSE
+            Stmt (4)
+              Exp (4)
+                ID: BGb
+              SEMI
+          StmtList (6)
+        RC
+    ExtDefList (7)
+      ExtDef (7)
+        Specifier (7)
+          TYPE: float
+        ExtDecList (7)
+          VarDec (7)
+            ID: G6ZSgxaEEU
+          COMMA
+          ExtDecList (7)
+            VarDec (7)
+              ID: mLms
+        SEMI
+      ExtDefList (10)
+        ExtDef (10)
+          Specifier (10)
+            TYPE: float
+          SEMI
+        ExtDefList (11)
+          ExtDef (11)
+            Specifier (11)
+              StructSpecifier (11)
+                STRUCT
+                OptTag (11)
+                  ID: qhWtLoCu4_M
+                LC
+                DefList (12)
+                RC
+            ExtDecList (12)
+              VarDec (12)
+                ID: AuFSM17
+            SEMI
+          ExtDefList (14)
+            ExtDef (14)
+              Specifier (14)
+                TYPE: float
+              FunDec (14)
+                ID: hrsOFpID4GFjUTxuXozg
+                LP
+                RP
+              CompSt (14)
+                LC
+                DefList (15)
+                StmtList (15)
+                RC
+            ExtDefList (16)

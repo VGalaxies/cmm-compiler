@@ -1,0 +1,74 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: float
+      FunDec (1)
+        ID: U
+        LP
+        RP
+      CompSt (1)
+        LC
+        DefList (2)
+          Def (2)
+            Specifier (2)
+              TYPE: float
+            DecList (2)
+              Dec (2)
+                VarDec (2)
+                  ID: ZNH4FfP
+                ASSIGNOP
+                Exp (2)
+                  ID: ELKoSze
+            SEMI
+          DefList (3)
+            Def (3)
+              Specifier (3)
+                TYPE: float
+              DecList (3)
+                Dec (3)
+                  VarDec (3)
+                    VarDec (3)
+                      VarDec (3)
+                        VarDec (3)
+                          VarDec (3)
+                            VarDec (3)
+                              VarDec (3)
+                                ID: DpVNe8_
+                              LB
+                              INT: 646223153
+                              RB
+                            LB
+                            INT: 1322990670
+                            RB
+                          LB
+                          INT: 62271488
+                          RB
+                        LB
+                        INT: 1948140660
+                        RB
+                      LB
+                      INT: 941323138
+                      RB
+                    LB
+                    INT: 64745206
+                    RB
+                COMMA
+                DecList (4)
+                  Dec (4)
+                    VarDec (4)
+                      ID: nLa2FxIXwDG_qpnw2
+              SEMI
+            DefList (6)
+              Def (6)
+                Specifier (6)
+                  TYPE: float
+                DecList (6)
+                  Dec (6)
+                    VarDec (6)
+                      ID: qb6WFYUygQFbocMyA7BG
+                SEMI
+              DefList (7)
+        StmtList (7)
+        RC
+    ExtDefList (8)

@@ -1,0 +1,33 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: float
+      FunDec (1)
+        ID: gA
+        LP
+        VarList (1)
+          ParamDec (1)
+            Specifier (1)
+              TYPE: float
+            VarDec (1)
+              VarDec (1)
+                ID: sWm4Hh95
+              LB
+              INT: 1053524639
+              RB
+        RP
+      CompSt (1)
+        LC
+        DefList (2)
+        StmtList (2)
+        RC
+    ExtDefList (3)
+      ExtDef (3)
+        Specifier (3)
+          TYPE: int
+        ExtDecList (3)
+          VarDec (3)
+            ID: sV0u
+        SEMI
+      ExtDefList (5)

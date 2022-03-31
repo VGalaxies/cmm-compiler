@@ -1,0 +1,126 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          Tag (1)
+            ID: q5tXr6d3qc77bRcOWCui
+      ExtDecList (1)
+        VarDec (1)
+          VarDec (1)
+            VarDec (1)
+              VarDec (1)
+                ID: QxkT
+              LB
+              INT: 87604958
+              RB
+            LB
+            INT: 253167101
+            RB
+          LB
+          INT: 560861601
+          RB
+      SEMI
+    ExtDefList (4)
+      ExtDef (4)
+        Specifier (4)
+          StructSpecifier (4)
+            STRUCT
+            OptTag (4)
+            LC
+            DefList (5)
+              Def (5)
+                Specifier (5)
+                  StructSpecifier (5)
+                    STRUCT
+                    OptTag (5)
+                    LC
+                    DefList (6)
+                    RC
+                DecList (6)
+                  Dec (6)
+                    VarDec (6)
+                      ID: o
+                    ASSIGNOP
+                    Exp (6)
+                      ID: uQdym640zOyQ
+                  COMMA
+                  DecList (6)
+                    Dec (6)
+                      VarDec (6)
+                        ID: packqQUDBaSzOywft
+                SEMI
+              DefList (7)
+                Def (7)
+                  Specifier (7)
+                    StructSpecifier (7)
+                      STRUCT
+                      Tag (7)
+                        ID: NPD
+                  DecList (7)
+                    Dec (7)
+                      VarDec (7)
+                        ID: p7C7kIgm
+                    COMMA
+                    DecList (7)
+                      Dec (7)
+                        VarDec (7)
+                          ID: E3ZXCWRqQMnVr
+                  SEMI
+                DefList (8)
+            RC
+        FunDec (8)
+          ID: I
+          LP
+          VarList (8)
+            ParamDec (8)
+              Specifier (8)
+                TYPE: int
+              VarDec (8)
+                ID: vyE7Zr
+          RP
+        CompSt (8)
+          LC
+          DefList (9)
+          StmtList (9)
+            Stmt (9)
+              IF
+              LP
+              Exp (9)
+                ID: QZxNKWjTYoKL74Z
+              RP
+              Stmt (9)
+                Exp (9)
+                  ID: ATxq9dkmXhkRCSCYuu4
+                SEMI
+              ELSE
+              Stmt (10)
+                Exp (10)
+                  ID: xuIWyO2hGE4K0YBHlch
+                SEMI
+            StmtList (12)
+              Stmt (12)
+                IF
+                LP
+                Exp (12)
+                  ID: GR4n
+                RP
+                Stmt (12)
+                  Exp (12)
+                    ID: tgU3OZgx31TAOKSXMG
+                  SEMI
+                ELSE
+                Stmt (13)
+                  IF
+                  LP
+                  Exp (13)
+                    ID: SmC6fe_ixI4
+                  RP
+                  Stmt (13)
+                    Exp (13)
+                      ID: GoUeWxHZ3uicZ
+                    SEMI
+              StmtList (16)
+          RC
+      ExtDefList (17)

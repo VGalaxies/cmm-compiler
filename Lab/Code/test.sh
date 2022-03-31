@@ -1,4 +1,4 @@
-TEST=$(find ../Test/$1 -name "*.c" | sort)
+TEST=$(find $1 -regex ".*\.\(c\|cmm\)" | sort)
 TESTARR=(${TEST})
 
 make clean

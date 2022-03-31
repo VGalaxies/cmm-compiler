@@ -77,6 +77,7 @@ int main(int argc, char *argv[]) {
     print_ast_tree_interface();
 #endif
 
+    /* print_ast_tree_interface(); */
     analysis(get_ast_root());
 
 #ifdef SEMANTIC_DEBUG

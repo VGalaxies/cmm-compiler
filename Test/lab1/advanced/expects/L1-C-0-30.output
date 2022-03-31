@@ -1,0 +1,61 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          OptTag (1)
+          LC
+          DefList (2)
+          RC
+      FunDec (2)
+        ID: ft9VwLBEsvG
+        LP
+        RP
+      CompSt (2)
+        LC
+        DefList (3)
+          Def (3)
+            Specifier (3)
+              TYPE: int
+            DecList (3)
+              Dec (3)
+                VarDec (3)
+                  VarDec (3)
+                    VarDec (3)
+                      ID: bjYGJKDWhm6zozBvz
+                    LB
+                    INT: 1907818902
+                    RB
+                  LB
+                  INT: 2109878923
+                  RB
+                ASSIGNOP
+                Exp (4)
+                  ID: TDchaKkN4_9
+              COMMA
+              DecList (4)
+                Dec (4)
+                  VarDec (4)
+                    ID: t
+            SEMI
+          DefList (5)
+        StmtList (5)
+          Stmt (5)
+            IF
+            LP
+            Exp (5)
+              ID: kWP
+            RP
+            Stmt (5)
+              Exp (5)
+                ID: fgJKcNvQwcsP_ghm2
+              SEMI
+            ELSE
+            Stmt (6)
+              Exp (6)
+                ID: TCyYhd3FnbuXXZcUu
+              SEMI
+          StmtList (8)
+        RC
+    ExtDefList (9)

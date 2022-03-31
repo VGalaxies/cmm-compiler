@@ -1,0 +1,213 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: float
+      FunDec (1)
+        ID: NUmabitdUk
+        LP
+        RP
+      CompSt (1)
+        LC
+        DefList (2)
+          Def (2)
+            Specifier (2)
+              TYPE: int
+            DecList (2)
+              Dec (2)
+                VarDec (2)
+                  VarDec (2)
+                    ID: T
+                  LB
+                  INT: 621408068
+                  RB
+                ASSIGNOP
+                Exp (2)
+                  Exp (2)
+                    ID: w8s6lsKEV
+                  ASSIGNOP
+                  Exp (2)
+                    ID: cPyqy6Q5KstJvs8tdM
+            SEMI
+          DefList (4)
+            Def (4)
+              Specifier (4)
+                TYPE: int
+              DecList (4)
+                Dec (4)
+                  VarDec (4)
+                    ID: O9fbz9WQLVPSgU
+                  ASSIGNOP
+                  Exp (4)
+                    Exp (4)
+                      Exp (4)
+                        Exp (4)
+                          Exp (4)
+                            Exp (4)
+                              Exp (4)
+                                Exp (4)
+                                  Exp (4)
+                                    Exp (4)
+                                      ID: HxggaErKiEww6qWJCK
+                                      LP
+                                      RP
+                                    LB
+                                    Exp (4)
+                                      ID: VDMC6WrL
+                                    RB
+                                  DIV
+                                  Exp (5)
+                                    ID: iANm
+                                RELOP: GE
+                                Exp (5)
+                                  ID: biEk0RsVIwh9PznMP
+                              RELOP: LE
+                              Exp (5)
+                                ID: EjomtzHac
+                            RELOP: GT
+                            Exp (5)
+                              ID: quq9rd
+                          RELOP: LE
+                          Exp (6)
+                            ID: j3g
+                        RELOP: EQ
+                        Exp (6)
+                          ID: u5oyT
+                      RELOP: NE
+                      Exp (6)
+                        ID: Mnup9P5knxUO
+                    OR
+                    Exp (6)
+                      ID: y8EIp
+                COMMA
+                DecList (6)
+                  Dec (6)
+                    VarDec (6)
+                      ID: f6
+                  COMMA
+                  DecList (6)
+                    Dec (6)
+                      VarDec (6)
+                        ID: JwRlJDLD
+              SEMI
+            DefList (8)
+        StmtList (8)
+        RC
+    ExtDefList (9)
+      ExtDef (9)
+        Specifier (9)
+          TYPE: int
+        FunDec (9)
+          ID: IyGKelBVk
+          LP
+          VarList (9)
+            ParamDec (9)
+              Specifier (9)
+                StructSpecifier (9)
+                  STRUCT
+                  OptTag (9)
+                  LC
+                  DefList (10)
+                  RC
+              VarDec (10)
+                ID: eFtbqxmX
+          RP
+        CompSt (10)
+          LC
+          DefList (11)
+            Def (11)
+              Specifier (11)
+                TYPE: float
+              DecList (11)
+                Dec (11)
+                  VarDec (11)
+                    ID: enHeUiMWdw0OTS3Tb1hj
+                  ASSIGNOP
+                  Exp (11)
+                    Exp (11)
+                      FLOAT: 1553984636.832623893
+                    ASSIGNOP
+                    Exp (12)
+                      ID: OXeNx3p9waBivwe
+              SEMI
+            DefList (13)
+              Def (13)
+                Specifier (13)
+                  TYPE: float
+                DecList (13)
+                  Dec (13)
+                    VarDec (13)
+                      ID: FZPPFYCZv78i6ZrHAcb_
+                SEMI
+              DefList (14)
+                Def (14)
+                  Specifier (14)
+                    TYPE: float
+                  DecList (14)
+                    Dec (14)
+                      VarDec (14)
+                        ID: G_92lNNYFCDXle0
+                  SEMI
+                DefList (15)
+                  Def (15)
+                    Specifier (15)
+                      TYPE: int
+                    DecList (15)
+                      Dec (15)
+                        VarDec (15)
+                          ID: R0SsWNgADEOEAA06c
+                    SEMI
+                  DefList (16)
+          StmtList (16)
+            Stmt (16)
+              CompSt (16)
+                LC
+                DefList (17)
+                  Def (17)
+                    Specifier (17)
+                      StructSpecifier (17)
+                        STRUCT
+                        Tag (17)
+                          ID: cQ0yoc8WxHP1qXQzT0s
+                    DecList (17)
+                      Dec (17)
+                        VarDec (17)
+                          ID: lgidrsg
+                        ASSIGNOP
+                        Exp (17)
+                          ID: kIwJ3HWj0i6n
+                    SEMI
+                  DefList (19)
+                StmtList (19)
+                RC
+            StmtList (19)
+              Stmt (19)
+                IF
+                LP
+                Exp (19)
+                  ID: tylmqvz_xX2Tnymljd
+                RP
+                Stmt (19)
+                  IF
+                  LP
+                  Exp (19)
+                    ID: ms3bn1ra9
+                  RP
+                  Stmt (20)
+                    IF
+                    LP
+                    Exp (20)
+                      ID: mLdAdwAGGaY1Ob
+                    RP
+                    Stmt (20)
+                      Exp (20)
+                        ID: uq_j4czbm2
+                      SEMI
+              StmtList (24)
+          RC
+      ExtDefList (25)
+        ExtDef (25)
+          Specifier (25)
+            TYPE: int
+          SEMI
+        ExtDefList (26)
