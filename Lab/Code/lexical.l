@@ -1,6 +1,7 @@
 %{
 
 #include "common.h"
+#include "module.h"
 #include "syntax.tab.h"
 
 #define DBG_PRINTF() log("line %d | token %s", yylineno, yytext);
@@ -11,12 +12,8 @@ static void lexical_error() {
   print("Error type A at Line %d: Mysterious character \"%s\".", yylineno, yytext);
 }
 
-static Attribute attr_table[MAX_ATTR];
+static union Attribute attr_table[MAX_ATTR];
 static size_t attr_table_index = 0;
-
-Attribute get_attribute(size_t index) {
-  return attr_table[index];
-}
 
 enum { _OCT, _DEC, _HEX, };
 static const char *int_base_format[] = {
@@ -28,7 +25,7 @@ static const char *int_base_format[] = {
 static void install(int type, int attr) {
   DBG_PRINTF();
 
-  yylval.type_ast = (struct Ast *)log_malloc(sizeof(struct Ast));
+  yylval.type_ast = (struct Ast *)mm->log_malloc(sizeof(struct Ast));
   yylval.type_ast->type = type;
   yylval.type_ast->children_count = 0;
   yylval.type_ast->lineno = yylineno;
@@ -63,6 +60,16 @@ static void install(int type, int attr) {
     yylval.type_ast->attr_index = -1;
     break;
   }
+
+  if (attr_table_index >= MAX_ATTR) {
+    panic("attribute table overflow");
+  }
+}
+
+/* interface */
+
+static union Attribute get_attribute(size_t index) {
+  return attr_table[index];
 }
 
 %}

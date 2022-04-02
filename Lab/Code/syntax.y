@@ -4,7 +4,7 @@
 
 int syntax_errors = 0;
 
-static int prev_lineno = 0; // for syntax error
+static int prev_lineno = 1; // for syntax error
 static struct Ast *ast_root;
 
 static void syntax_error(struct Ast * node) {
@@ -17,7 +17,7 @@ void yyerror(const char *s) {
 }
 
 static void make_root(struct Ast **root) {
-  (*root) = (struct Ast *)log_malloc(sizeof(struct Ast));
+  (*root) = (struct Ast *)mm->log_malloc(sizeof(struct Ast));
   (*root)->type = _Program;
   (*root)->children_count = 0;
   (*root)->lineno = INT_MAX;
@@ -26,7 +26,7 @@ static void make_root(struct Ast **root) {
 }
 
 static void make_node(struct Ast **node, int type) {
-  (*node) = (struct Ast *)log_malloc(sizeof(struct Ast));
+  (*node) = (struct Ast *)mm->log_malloc(sizeof(struct Ast));
   (*node)->type = type;
   (*node)->children_count = 0;
   (*node)->lineno = INT_MAX;
@@ -115,14 +115,24 @@ static void print_tree(struct Ast *root, int indent) {
   }
 }
 
-void print_ast_tree_interface() {
+/* interface */
+
+static void print_ast_tree() {
   print_tree(ast_root, 0);
 }
 
-struct Ast *get_ast_root() {
+static struct Ast *get_ast_root() {
   return ast_root;
 }
 
+MODULE_DEF(parser) = {
+    .get_attribute = get_attribute,
+    .print_ast_tree = print_ast_tree,
+    .get_ast_root = get_ast_root,
+    .restart = yyrestart,
+    .parse = yyparse,
+    .lex_destroy = yylex_destroy,
+};
 
 %}
 

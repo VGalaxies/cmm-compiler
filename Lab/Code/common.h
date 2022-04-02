@@ -19,7 +19,11 @@
 /* debug info */
 
 #define print(format, ...) printf(format "\n", ##__VA_ARGS__)
-#define panic(format, ...) printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__)
+#define panic(format, ...)                                                     \
+  do {                                                                         \
+    printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__);                      \
+    exit(EXIT_FAILURE);                                                        \
+  } while (0)
 
 #ifdef LEXICAL_DEBUG
 #define log(format, ...) printf("\33[1;35m" format "\33[0m\n", ##__VA_ARGS__)
@@ -164,7 +168,7 @@ enum {
 #define UNIT_NAME(name) [_##name] = #name,
 static const char *unit_names[] = {UNIT_KEYS(UNIT_NAME)};
 
-/* syntax AST interface */
+/* syntax AST definition */
 
 #define MAX_CHILDREN 8
 struct Ast {
@@ -175,31 +179,17 @@ struct Ast {
   struct Ast *children[MAX_CHILDREN];
 };
 
-extern void print_ast_tree_interface();
-extern struct Ast *get_ast_root();
+/* lexical attribute definition */
 
-/* lexical attribute interface */
-
-typedef union {
+#define MAX_ATTR 1024
+union Attribute {
   int _attr;        // for TYPE or RELOP
   unsigned _int;    // for INT
   float _float;     // for FLOAT
   char _string[64]; // for ID
-} Attribute;
+};
 
-#define MAX_ATTR 1024
-extern Attribute get_attribute(size_t index);
-
-/* memory management interface */
-
-#define INIT_MALLOC_SIZE 1024
-extern void *log_malloc(size_t size);
-
-/* semantic interface */
-
-extern void print_symbol_table_interface();
-
-/* semantic type system */
+/* semantic type system definition */
 
 typedef struct TypeItem *Type;
 typedef struct FieldListItem *FieldList;
@@ -225,7 +215,7 @@ struct FieldListItem {
   FieldList tail; // 下一个域
 };
 
-/* semantic symbol */
+/* semantic symbol definition */
 
 #define MAX_BRACKET 16
 #define MAX_ARGUMENT 16

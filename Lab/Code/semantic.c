@@ -1,4 +1,5 @@
 #include "common.h"
+#include "module.h"
 
 /* error handler */
 
@@ -12,16 +13,16 @@ static void semantic_error(int type, int lineno) {
 
 static Symbol symbol_table = NULL;
 
-void insert_symbol_table(SymbolInfo symbol_info) {
+static void insert_symbol_table(SymbolInfo symbol_info) {
   action("insert symbol %s\n", symbol_info->name);
 
-  Symbol symbol = (Symbol)log_malloc(sizeof(struct SymbolItem));
+  Symbol symbol = (Symbol)mm->log_malloc(sizeof(struct SymbolItem));
   symbol->tail = symbol_table;
   symbol->symbol_info = symbol_info;
   symbol_table = symbol;
 }
 
-SymbolInfo find_symbol_table(int kind, const char *name) {
+static SymbolInfo find_symbol_table(int kind, const char *name) {
   action("find symbol %s\n", name);
 
   Symbol curr_symbol = symbol_table;
@@ -109,8 +110,6 @@ static void print_symbol_table() {
   }
 }
 
-void print_symbol_table_interface() { print_symbol_table(); }
-
 /* type system */
 
 static SymbolInfo int_type;
@@ -119,11 +118,11 @@ static SymbolInfo float_type;
 static void build_naked_type() {
   // build int
   {
-    int_type = (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+    int_type = (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
     int_type->kind = VariableInfo; // assume
     strcpy(int_type->name, "");    // useless
 
-    Type type = (Type)log_malloc(sizeof(struct TypeItem));
+    Type type = (Type)mm->log_malloc(sizeof(struct TypeItem));
     type->kind = BASIC;
     type->u.basic = _INT;
     int_type->info.type = type;
@@ -131,11 +130,11 @@ static void build_naked_type() {
 
   // build float
   {
-    float_type = (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+    float_type = (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
     float_type->kind = VariableInfo; // assume
     strcpy(float_type->name, "");    // useless
 
-    Type type = (Type)log_malloc(sizeof(struct TypeItem));
+    Type type = (Type)mm->log_malloc(sizeof(struct TypeItem));
     type->kind = BASIC;
     type->u.basic = _FLOAT;
     float_type->info.type = type;
@@ -248,12 +247,13 @@ static int check_node(struct Ast *node, size_t count, ...) {
 
 /* semantic analysis */
 
-void variable_declaration(struct Ast *node, Type type,
-                          SymbolInfo filled_symbol_info);
-SymbolInfo specifier(struct Ast *node);
-Type expression(struct Ast *node, int required_lval);
+static void variable_declaration(struct Ast *node, Type type,
+                                 SymbolInfo filled_symbol_info);
+static SymbolInfo specifier(struct Ast *node);
+static Type expression(struct Ast *node, int required_lval);
 
-void declaration(struct Ast *node, Type type, SymbolInfo struct_symbol_info) {
+static void declaration(struct Ast *node, Type type,
+                        SymbolInfo struct_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Dec);
 
@@ -285,8 +285,8 @@ void declaration(struct Ast *node, Type type, SymbolInfo struct_symbol_info) {
   return;
 }
 
-void declaration_list(struct Ast *node, Type type,
-                      SymbolInfo struct_symbol_info) {
+static void declaration_list(struct Ast *node, Type type,
+                             SymbolInfo struct_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _DecList);
 
@@ -307,7 +307,7 @@ void declaration_list(struct Ast *node, Type type,
   return;
 }
 
-void definition(struct Ast *node, SymbolInfo struct_symbol_info) {
+static void definition(struct Ast *node, SymbolInfo struct_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Def);
 
@@ -348,7 +348,7 @@ void definition(struct Ast *node, SymbolInfo struct_symbol_info) {
       } else {
         // insert into symbol table and declare variables
         SymbolInfo copied_symbol_info =
-            (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+            (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
         memcpy(copied_symbol_info, symbol_info, sizeof(struct SymbolInfoItem));
         insert_symbol_table(copied_symbol_info);
         declaration_list(node->children[1], symbol_info->info.type,
@@ -362,7 +362,7 @@ void definition(struct Ast *node, SymbolInfo struct_symbol_info) {
   return;
 }
 
-void definition_list(struct Ast *node, SymbolInfo struct_symbol_info) {
+static void definition_list(struct Ast *node, SymbolInfo struct_symbol_info) {
   /* StructSpecifier -> STRUCT OptTag LC DefList RC */
   /* CompSt -> LC DefList StmtList RC */
 
@@ -387,18 +387,19 @@ void definition_list(struct Ast *node, SymbolInfo struct_symbol_info) {
   return;
 }
 
-SymbolInfo struct_specifier(struct Ast *node) {
+static SymbolInfo struct_specifier(struct Ast *node) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _StructSpecifier);
 
   /* StructSpecifier -> STRUCT Tag */
   if (check_node(node, 2, _STRUCT, _Tag)) {
     SymbolInfo symbol_info =
-        (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+        (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
     symbol_info->kind = VariableInfo; // assume
     strcpy(symbol_info->name,
            /* Tag -> ID */
-           get_attribute(node->children[1]->children[0]->attr_index)._string);
+           parser->get_attribute(node->children[1]->children[0]->attr_index)
+               ._string);
 
     symbol_info->info.type = NULL; // scan the table to find info
     return symbol_info;
@@ -407,7 +408,7 @@ SymbolInfo struct_specifier(struct Ast *node) {
   /* StructSpecifier -> STRUCT OptTag LC DefList RC */
   if (node->children_count == 5) {
     SymbolInfo struct_symbol_info =
-        (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+        (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
 
     if (node->children[1]->type == _EMPTY) { // anonymous structure
       struct_symbol_info->kind = VariableInfo;
@@ -416,13 +417,14 @@ SymbolInfo struct_specifier(struct Ast *node) {
       struct_symbol_info->kind = TypeDef;
       strcpy(struct_symbol_info->name,
              /* OptTag -> ID */
-             get_attribute(node->children[1]->children[0]->attr_index)._string);
+             parser->get_attribute(node->children[1]->children[0]->attr_index)
+                 ._string);
     } else {
       return NULL;
     }
 
     struct_symbol_info->info.type =
-        (Type)log_malloc(sizeof(struct TypeItem)); // alloc space;
+        (Type)mm->log_malloc(sizeof(struct TypeItem)); // alloc space;
     struct_symbol_info->info.type->u.structure = NULL;
     struct_symbol_info->info.type->kind = STRUCTURE;
     definition_list(node->children[3], struct_symbol_info);
@@ -434,7 +436,7 @@ SymbolInfo struct_specifier(struct Ast *node) {
   return NULL;
 }
 
-SymbolInfo specifier(struct Ast *node) {
+static SymbolInfo specifier(struct Ast *node) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Specifier);
 
@@ -445,7 +447,7 @@ SymbolInfo specifier(struct Ast *node) {
 
   /* Specifier -> TYPE */
   if (check_node(node, 1, _TYPE)) {
-    int attr = get_attribute(node->children[0]->attr_index)._attr;
+    int attr = parser->get_attribute(node->children[0]->attr_index)._attr;
     if (attr == _INT) {
       return int_type;
     } else if (attr == _FLOAT) {
@@ -457,8 +459,8 @@ SymbolInfo specifier(struct Ast *node) {
   return NULL;
 }
 
-void variable_declaration(struct Ast *node, Type type,
-                          SymbolInfo filled_symbol_info) {
+static void variable_declaration(struct Ast *node, Type type,
+                                 SymbolInfo filled_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _VarDec);
   assert(type);
@@ -472,7 +474,7 @@ void variable_declaration(struct Ast *node, Type type,
       /* VarDec -> VarDec LB INT RB */
       assert(curr_node->children[2]->type == _INT); // subscripts are integers
       dimensions[curr_dimension] =
-          get_attribute(curr_node->children[2]->attr_index)._int;
+          parser->get_attribute(curr_node->children[2]->attr_index)._int;
       curr_node = curr_node->children[0];
       curr_dimension++;
     } else if (curr_node->children_count == 1) {
@@ -480,7 +482,8 @@ void variable_declaration(struct Ast *node, Type type,
       curr_node = curr_node->children[0];
 
       // scan the table first
-      if (find_symbol_table(-1, get_attribute(curr_node->attr_index)._string) !=
+      if (find_symbol_table(
+              -1, parser->get_attribute(curr_node->attr_index)._string) !=
           NULL) {
         if (filled_symbol_info) {
           // TODO: multi-definition of field name
@@ -494,10 +497,10 @@ void variable_declaration(struct Ast *node, Type type,
       }
 
       // then backtrace
-      Type tail_type = (Type)log_malloc(sizeof(struct TypeItem));
+      Type tail_type = (Type)mm->log_malloc(sizeof(struct TypeItem));
       memcpy(tail_type, type, sizeof(struct TypeItem));
       for (size_t i = 0; i < curr_dimension; ++i) {
-        Type type = (Type)log_malloc(sizeof(struct TypeItem));
+        Type type = (Type)mm->log_malloc(sizeof(struct TypeItem));
         type->kind = ARRAY;
         type->u.array.elem = tail_type;
         type->u.array.size = dimensions[i];
@@ -505,19 +508,22 @@ void variable_declaration(struct Ast *node, Type type,
       }
 
       SymbolInfo symbol_info =
-          (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+          (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
       symbol_info->kind = VariableInfo;
       symbol_info->info.type = tail_type;
-      strcpy(symbol_info->name, get_attribute(curr_node->attr_index)._string);
+      strcpy(symbol_info->name,
+             parser->get_attribute(curr_node->attr_index)._string);
       insert_symbol_table(symbol_info);
 
       // fill into structure or function
       if (filled_symbol_info) {
         if (filled_symbol_info->kind != FunctionInfo) {
           assert(filled_symbol_info->info.type);
-          FieldList field = (FieldList)log_malloc(sizeof(struct FieldListItem));
-          strcpy(field->name, get_attribute(curr_node->attr_index)._string);
-          Type struct_type = (Type)log_malloc(sizeof(struct TypeItem));
+          FieldList field =
+              (FieldList)mm->log_malloc(sizeof(struct FieldListItem));
+          strcpy(field->name,
+                 parser->get_attribute(curr_node->attr_index)._string);
+          Type struct_type = (Type)mm->log_malloc(sizeof(struct TypeItem));
           memcpy(struct_type, tail_type, sizeof(struct TypeItem));
           field->type = struct_type;
           field->tail = filled_symbol_info->info.type->u.structure;
@@ -525,7 +531,7 @@ void variable_declaration(struct Ast *node, Type type,
         } else {
           size_t index = filled_symbol_info->info.function.argument_count;
           filled_symbol_info->info.function.arguments[index] =
-              (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+              (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
           memcpy(filled_symbol_info->info.function.arguments[index],
                  symbol_info, sizeof(struct SymbolInfoItem));
           filled_symbol_info->info.function.argument_count++;
@@ -545,7 +551,7 @@ void variable_declaration(struct Ast *node, Type type,
   return;
 }
 
-void external_declaration_list(struct Ast *node, Type type) {
+static void external_declaration_list(struct Ast *node, Type type) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDecList);
   assert(type);
@@ -566,7 +572,8 @@ void external_declaration_list(struct Ast *node, Type type) {
   assert(0);
 }
 
-void parameter_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
+static void parameter_declaration(struct Ast *node,
+                                  SymbolInfo function_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ParamDec);
 
@@ -610,7 +617,7 @@ void parameter_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
       } else {
         // insert into symbol table and declare parameters
         SymbolInfo copied_symbol_info =
-            (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+            (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
         memcpy(copied_symbol_info, symbol_info, sizeof(struct SymbolInfoItem));
         insert_symbol_table(copied_symbol_info);
         variable_declaration(node->children[1], symbol_info->info.type,
@@ -621,7 +628,7 @@ void parameter_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
   }
 }
 
-void variable_list(struct Ast *node, SymbolInfo function_symbol_info) {
+static void variable_list(struct Ast *node, SymbolInfo function_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _VarList);
 
@@ -642,12 +649,14 @@ void variable_list(struct Ast *node, SymbolInfo function_symbol_info) {
   return;
 }
 
-void function_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
+static void function_declaration(struct Ast *node,
+                                 SymbolInfo function_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _FunDec);
 
   if (find_symbol_table(
-          -1, get_attribute(node->children[0]->attr_index)._string) != NULL) {
+          -1, parser->get_attribute(node->children[0]->attr_index)._string) !=
+      NULL) {
     // multi-definition of function name
     semantic_error(4, node->children[0]->lineno);
     return;
@@ -655,7 +664,7 @@ void function_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
 
   // fill function name
   strcpy(function_symbol_info->name,
-         get_attribute(node->children[0]->attr_index)._string);
+         parser->get_attribute(node->children[0]->attr_index)._string);
 
   /* FunDec -> ID LP RP */
   if (check_node(node, 3, _ID, _LP, _RP)) {
@@ -673,7 +682,7 @@ void function_declaration(struct Ast *node, SymbolInfo function_symbol_info) {
   return;
 }
 
-Type arguments(struct Ast *node, SymbolInfo function_symbol_info) {
+static Type arguments(struct Ast *node, SymbolInfo function_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Args);
 
@@ -727,7 +736,7 @@ Type arguments(struct Ast *node, SymbolInfo function_symbol_info) {
   }
 }
 
-Type expression(struct Ast *node, int required_lval) {
+static Type expression(struct Ast *node, int required_lval) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Exp);
   /* Exp : Exp ASSIGNOP Exp
@@ -763,7 +772,8 @@ Type expression(struct Ast *node, int required_lval) {
   // identifier
   if (check_node(node, 1, _ID)) {
     SymbolInfo symbol_info = find_symbol_table(
-        VariableInfo, get_attribute(node->children[0]->attr_index)._string);
+        VariableInfo,
+        parser->get_attribute(node->children[0]->attr_index)._string);
     if (symbol_info == NULL) {
       semantic_error(1, node->children[0]->lineno);
       return NULL;
@@ -775,7 +785,7 @@ Type expression(struct Ast *node, int required_lval) {
   if (check_node(node, 3, _ID, _LP, _RP) ||
       check_node(node, 4, _ID, _LP, _Args, _RP)) {
     SymbolInfo symbol_info = find_symbol_table(
-        -1, get_attribute(node->children[0]->attr_index)._string);
+        -1, parser->get_attribute(node->children[0]->attr_index)._string);
     if (symbol_info == NULL) {
       semantic_error(2, node->children[0]->lineno);
       return NULL;
@@ -876,7 +886,8 @@ Type expression(struct Ast *node, int required_lval) {
 
     // assume no need to scan symbol table
     Type res = scan_structure_field(
-        structure, get_attribute(node->children[2]->attr_index)._string);
+        structure,
+        parser->get_attribute(node->children[2]->attr_index)._string);
     if (res == NULL) {
       // access undefined field
       semantic_error(14, node->children[2]->lineno);
@@ -932,8 +943,9 @@ Type expression(struct Ast *node, int required_lval) {
   return NULL;
 }
 
-void compound_statement(struct Ast *node, SymbolInfo function_symbol_info);
-void statement(struct Ast *node, SymbolInfo function_symbol_info) {
+static void compound_statement(struct Ast *node,
+                               SymbolInfo function_symbol_info);
+static void statement(struct Ast *node, SymbolInfo function_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Stmt);
   /* Stmt : Exp SEMI
@@ -996,7 +1008,7 @@ void statement(struct Ast *node, SymbolInfo function_symbol_info) {
   return;
 }
 
-void statement_list(struct Ast *node, SymbolInfo function_symbol_info) {
+static void statement_list(struct Ast *node, SymbolInfo function_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _StmtList);
 
@@ -1018,7 +1030,8 @@ void statement_list(struct Ast *node, SymbolInfo function_symbol_info) {
   return;
 }
 
-void compound_statement(struct Ast *node, SymbolInfo function_symbol_info) {
+static void compound_statement(struct Ast *node,
+                               SymbolInfo function_symbol_info) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _CompSt);
 
@@ -1035,16 +1048,17 @@ void compound_statement(struct Ast *node, SymbolInfo function_symbol_info) {
   return;
 }
 
+// helper function
 static void construct_insert_function_compst(struct Ast *node,
                                              Type return_type) {
   SymbolInfo function_symbol_info =
-      (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+      (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
   function_symbol_info->kind = FunctionInfo;
   strcpy(function_symbol_info->name,
          ""); // filled when in function declaration
 
   function_symbol_info->info.function.return_type =
-      (Type)log_malloc(sizeof(struct TypeItem));
+      (Type)mm->log_malloc(sizeof(struct TypeItem));
   // serve as return type of function
   memcpy(function_symbol_info->info.function.return_type, return_type,
          sizeof(struct TypeItem));
@@ -1061,7 +1075,7 @@ static void construct_insert_function_compst(struct Ast *node,
   }
 }
 
-void external_definition(struct Ast *node) {
+static void external_definition(struct Ast *node) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDef);
 
@@ -1097,7 +1111,7 @@ void external_definition(struct Ast *node) {
       } else {
         // insert into symbol table
         SymbolInfo copied_symbol_info =
-            (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+            (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
         memcpy(copied_symbol_info, symbol_info, sizeof(struct SymbolInfoItem));
         insert_symbol_table(copied_symbol_info);
         return;
@@ -1137,7 +1151,7 @@ void external_definition(struct Ast *node) {
       } else {
         // insert into symbol table and declare variables
         SymbolInfo copied_symbol_info =
-            (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+            (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
         memcpy(copied_symbol_info, symbol_info, sizeof(struct SymbolInfoItem));
         insert_symbol_table(copied_symbol_info);
         external_declaration_list(node->children[1], symbol_info->info.type);
@@ -1161,7 +1175,7 @@ void external_definition(struct Ast *node) {
       } else {
         // insert into symbol table
         SymbolInfo copied_symbol_info =
-            (SymbolInfo)log_malloc(sizeof(struct SymbolInfoItem));
+            (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
         memcpy(copied_symbol_info, symbol_info, sizeof(struct SymbolInfoItem));
         insert_symbol_table(copied_symbol_info);
 
@@ -1191,7 +1205,7 @@ void external_definition(struct Ast *node) {
   return;
 }
 
-void external_definition_list(struct Ast *node) {
+static void external_definition_list(struct Ast *node) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDefList);
 
@@ -1211,7 +1225,7 @@ void external_definition_list(struct Ast *node) {
   return;
 }
 
-void program(struct Ast *node) {
+static void program(struct Ast *node) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Program);
 
@@ -1224,7 +1238,14 @@ void program(struct Ast *node) {
   return;
 }
 
-void analysis(struct Ast *root) {
+static void analysis(struct Ast *root) {
   build_naked_type();
   program(root);
 }
+
+/* interface */
+
+MODULE_DEF(analyzer) = {
+    .semantic_analysis = analysis,
+    .print_symbol_table = print_symbol_table,
+};
