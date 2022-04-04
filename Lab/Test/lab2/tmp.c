@@ -1,9 +1,15 @@
 struct A {
   int a;
-  int b;
-} c[10];
+  float b;
+};
+
+struct B {
+  float c;
+  int d;
+};
 
 int foo() {
-  int x;
-  int y;
+  struct A x;
+  struct B y;
+  y = x;
 }
