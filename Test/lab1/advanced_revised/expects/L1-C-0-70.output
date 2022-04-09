@@ -1,0 +1,136 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: float
+      ExtDecList (1)
+        VarDec (1)
+          ID: BuYXboG
+        COMMA
+        ExtDecList (1)
+          VarDec (1)
+            ID: eM0MPeuyiMgogKCvZD
+          COMMA
+          ExtDecList (1)
+            VarDec (1)
+              VarDec (1)
+                VarDec (1)
+                  ID: R
+                LB
+                INT: 1461051236
+                RB
+              LB
+              INT: 81794884
+              RB
+      SEMI
+    ExtDefList (6)
+      ExtDef (6)
+        Specifier (6)
+          StructSpecifier (6)
+            STRUCT
+            OptTag (6)
+              ID: cfuVgEDqr
+            LC
+            DefList (7)
+            RC
+        ExtDecList (7)
+          VarDec (7)
+            VarDec (7)
+              VarDec (7)
+                VarDec (7)
+                  VarDec (7)
+                    ID: sVdR
+                  LB
+                  INT: 1206414891
+                  RB
+                LB
+                INT: 1583449800
+                RB
+              LB
+              INT: 679983712
+              RB
+            LB
+            INT: 1995642232
+            RB
+          COMMA
+          ExtDecList (8)
+            VarDec (8)
+              VarDec (8)
+                VarDec (8)
+                  ID: aamVk
+                LB
+                INT: 2118669885
+                RB
+              LB
+              INT: 632816440
+              RB
+            COMMA
+            ExtDecList (9)
+              VarDec (9)
+                VarDec (9)
+                  VarDec (9)
+                    VarDec (9)
+                      VarDec (9)
+                        ID: ufQUCDhYJ_66FrG00E
+                      LB
+                      INT: 301535363
+                      RB
+                    LB
+                    INT: 978214220
+                    RB
+                  LB
+                  INT: 1211549463
+                  RB
+                LB
+                INT: 1441073724
+                RB
+              COMMA
+              ExtDecList (10)
+                VarDec (10)
+                  ID: o9wGlz_yvgVlySvMwM
+                COMMA
+                ExtDecList (11)
+                  VarDec (11)
+                    ID: eOF66Xztbba
+        SEMI
+      ExtDefList (17)
+        ExtDef (17)
+          Specifier (17)
+            TYPE: float
+          FunDec (17)
+            ID: Py
+            LP
+            RP
+          CompSt (17)
+            LC
+            DefList (18)
+            StmtList (18)
+            RC
+        ExtDefList (19)
+          ExtDef (19)
+            Specifier (19)
+              StructSpecifier (19)
+                STRUCT
+                Tag (19)
+                  ID: h
+            FunDec (19)
+              ID: fOS
+              LP
+              RP
+            CompSt (19)
+              LC
+              DefList (20)
+              StmtList (20)
+                Stmt (20)
+                  IF
+                  LP
+                  Exp (20)
+                    ID: nv
+                  RP
+                  Stmt (20)
+                    Exp (20)
+                      ID: z7
+                    SEMI
+                StmtList (22)
+              RC
+          ExtDefList (23)

@@ -1,0 +1,114 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: float
+      FunDec (1)
+        ID: wLHqE
+        LP
+        VarList (1)
+          ParamDec (1)
+            Specifier (1)
+              TYPE: float
+            VarDec (1)
+              ID: Wvo2a_NN58Ddux
+        RP
+      CompSt (1)
+        LC
+        DefList (2)
+        StmtList (2)
+        RC
+    ExtDefList (3)
+      ExtDef (3)
+        Specifier (3)
+          TYPE: int
+        FunDec (3)
+          ID: N_GOUTr3
+          LP
+          VarList (3)
+            ParamDec (3)
+              Specifier (3)
+                TYPE: int
+              VarDec (3)
+                ID: Ov2
+            COMMA
+            VarList (3)
+              ParamDec (3)
+                Specifier (3)
+                  TYPE: int
+                VarDec (3)
+                  ID: HQ
+          RP
+        CompSt (3)
+          LC
+          DefList (4)
+            Def (4)
+              Specifier (4)
+                TYPE: float
+              DecList (4)
+                Dec (4)
+                  VarDec (4)
+                    VarDec (4)
+                      VarDec (4)
+                        VarDec (4)
+                          ID: Zr4H
+                        LB
+                        INT: 1745821201
+                        RB
+                      LB
+                      INT: 307875655
+                      RB
+                    LB
+                    INT: 208278813
+                    RB
+                  ASSIGNOP
+                  Exp (5)
+                    ID: DoddeT
+              SEMI
+            DefList (6)
+              Def (6)
+                Specifier (6)
+                  TYPE: int
+                DecList (6)
+                  Dec (6)
+                    VarDec (6)
+                      ID: L59EPoaGe5RKnHs
+                SEMI
+              DefList (7)
+          StmtList (7)
+            Stmt (7)
+              IF
+              LP
+              Exp (7)
+                ID: ZTVQWevMqIC0Qj
+              RP
+              Stmt (7)
+                Exp (7)
+                  ID: Te2doUqI025nG
+                SEMI
+              ELSE
+              Stmt (8)
+                IF
+                LP
+                Exp (8)
+                  ID: zon2KhT0L
+                RP
+                Stmt (8)
+                  IF
+                  LP
+                  Exp (8)
+                    ID: lnwhOzwQBQoAYdu
+                  RP
+                  Stmt (8)
+                    IF
+                    LP
+                    Exp (9)
+                      ID: n4_3Hcy60rDpDG8X
+                    RP
+                    Stmt (9)
+                      Exp (9)
+                        ID: Hbi
+                      SEMI
+            StmtList (14)
+          RC
+      ExtDefList (15)

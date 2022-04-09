@@ -1,0 +1,92 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          OptTag (1)
+            ID: vsXgM9kUcSNOFhF
+          LC
+          DefList (2)
+            Def (2)
+              Specifier (2)
+                TYPE: int
+              DecList (2)
+                Dec (2)
+                  VarDec (2)
+                    ID: nNw_noYJEeu1v
+                  ASSIGNOP
+                  Exp (2)
+                    Exp (2)
+                      NOT
+                      Exp (2)
+                        NOT
+                        Exp (2)
+                          ID: QgkfK2MX
+                    ASSIGNOP
+                    Exp (2)
+                      ID: DtYArWuHvi
+              SEMI
+            DefList (3)
+          RC
+      FunDec (3)
+        ID: lqK0CCmqw12GTJp
+        LP
+        VarList (3)
+          ParamDec (3)
+            Specifier (3)
+              TYPE: float
+            VarDec (3)
+              VarDec (3)
+                ID: yCi
+              LB
+              INT: 1365984903
+              RB
+        RP
+      CompSt (3)
+        LC
+        DefList (4)
+        StmtList (4)
+          Stmt (4)
+            IF
+            LP
+            Exp (4)
+              Exp (4)
+                LP
+                Exp (4)
+                  Exp (4)
+                    NOT
+                    Exp (4)
+                      ID: XMk3RU5T
+                  ASSIGNOP
+                  Exp (4)
+                    ID: eK6m2x
+                RP
+              ASSIGNOP
+              Exp (4)
+                ID: XmKH5ejqqd
+            RP
+            Stmt (4)
+              Exp (4)
+                ID: Q4fBQv2hQci4uBOevYqp
+              SEMI
+            ELSE
+            Stmt (6)
+              IF
+              LP
+              Exp (6)
+                ID: xUW4km4tw_8NHGUHO
+              RP
+              Stmt (6)
+                IF
+                LP
+                Exp (6)
+                  ID: omdr
+                RP
+                Stmt (6)
+                  Exp (6)
+                    ID: IiNUsVoWqC
+                  SEMI
+          StmtList (11)
+        RC
+    ExtDefList (12)

@@ -151,7 +151,7 @@ static int check_structure_type(FieldList lhs, FieldList rhs) {
     return 0;
   }
 
-  // TODO: structural equivalence
+  // structural equivalence
   return check_type(lhs->type, rhs->type) &&
          check_structure_type(lhs->tail, rhs->tail);
 }
@@ -486,7 +486,9 @@ static void variable_declaration(struct Ast *node, Type type,
               -1, parser->get_attribute(curr_node->attr_index)._string) !=
           NULL) {
         if (filled_symbol_info) {
-          // TODO: multi-definition of field name
+          // struct_symbol_info
+          // assume global
+          // multi-definition of field name
           semantic_error(15, curr_node->lineno);
           return;
         } else {

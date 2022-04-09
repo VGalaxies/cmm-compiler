@@ -1,0 +1,108 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          Tag (1)
+            ID: D2PQTn6r
+      FunDec (1)
+        ID: jWhL1s
+        LP
+        RP
+      CompSt (1)
+        LC
+        DefList (2)
+          Def (2)
+            Specifier (2)
+              TYPE: int
+            DecList (2)
+              Dec (2)
+                VarDec (2)
+                  ID: m_2LrLlBpxcCpu2t
+            SEMI
+          DefList (3)
+            Def (3)
+              Specifier (3)
+                TYPE: float
+              DecList (3)
+                Dec (3)
+                  VarDec (3)
+                    ID: fe_G82y1Lhn
+                COMMA
+                DecList (3)
+                  Dec (3)
+                    VarDec (3)
+                      ID: ECWeVwhKRHsCVMkRmL
+              SEMI
+            DefList (4)
+              Def (4)
+                Specifier (4)
+                  TYPE: float
+                DecList (4)
+                  Dec (4)
+                    VarDec (4)
+                      VarDec (4)
+                        ID: HjGe6e
+                      LB
+                      INT: 916197631
+                      RB
+                    ASSIGNOP
+                    Exp (4)
+                      ID: Rd0xATYowU5
+                SEMI
+              DefList (5)
+        StmtList (5)
+        RC
+    ExtDefList (6)
+      ExtDef (6)
+        Specifier (6)
+          TYPE: float
+        FunDec (6)
+          ID: I8SqUNlsTB_
+          LP
+          RP
+        CompSt (6)
+          LC
+          DefList (7)
+            Def (7)
+              Specifier (7)
+                TYPE: int
+              DecList (7)
+                Dec (7)
+                  VarDec (7)
+                    ID: HeLbknMLxIXx
+                  ASSIGNOP
+                  Exp (7)
+                    ID: IW
+                COMMA
+                DecList (7)
+                  Dec (7)
+                    VarDec (7)
+                      ID: LV57Lis
+              SEMI
+            DefList (8)
+              Def (8)
+                Specifier (8)
+                  StructSpecifier (8)
+                    STRUCT
+                    Tag (8)
+                      ID: cuQE
+                DecList (8)
+                  Dec (8)
+                    VarDec (8)
+                      VarDec (8)
+                        ID: d7ahq50BeA3iPL
+                      LB
+                      INT: 182149653
+                      RB
+                  COMMA
+                  DecList (8)
+                    Dec (8)
+                      VarDec (8)
+                        ID: WGED3B
+                SEMI
+              DefList (10)
+          StmtList (10)
+          RC
+      ExtDefList (11)

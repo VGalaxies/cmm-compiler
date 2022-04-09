@@ -15,7 +15,7 @@ void *log_malloc(size_t size) {
 
   if (malloc_table_index == malloc_table_size) {
     malloc_table =
-        (void **)realloc(malloc_table, INIT_MALLOC_SIZE * 2 * sizeof(void *));
+        (void **)realloc(malloc_table, malloc_table_size * 2 * sizeof(void *));
     malloc_table_size *= 2;
   }
 

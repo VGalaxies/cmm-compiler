@@ -1,0 +1,29 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          OptTag (1)
+            ID: H2IP8ttKNa4Rn
+          LC
+          DefList (2)
+            Def (2)
+              Specifier (2)
+                TYPE: int
+              DecList (2)
+                Dec (2)
+                  VarDec (2)
+                    VarDec (2)
+                      ID: bu
+                    LB
+                    INT: 255075501
+                    RB
+                  ASSIGNOP
+                  Exp (2)
+                    ID: _hu
+              SEMI
+            DefList (3)
+          RC
+      SEMI
+    ExtDefList (4)

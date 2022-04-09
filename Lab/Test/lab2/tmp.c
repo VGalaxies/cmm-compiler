@@ -1,15 +1,5 @@
-struct A {
-  int a;
-  float b;
-};
-
-struct B {
-  float c;
-  int d;
-};
-
-int foo() {
-  struct A x;
-  struct B y;
-  y = x;
+int main() {
+  int a[2][3];
+  int b[2][3];
+  a[2][3][4] = b;
 }

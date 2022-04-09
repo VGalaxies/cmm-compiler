@@ -1,0 +1,47 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          OptTag (1)
+            ID: VrZPSnIVwZmkAJyfBOZu
+          LC
+          DefList (2)
+            Def (2)
+              Specifier (2)
+                StructSpecifier (2)
+                  STRUCT
+                  OptTag (2)
+                  LC
+                  DefList (3)
+                  RC
+              DecList (3)
+                Dec (3)
+                  VarDec (3)
+                    ID: TsU3vdnHcMW
+              SEMI
+            DefList (4)
+          RC
+      FunDec (4)
+        ID: GVAGDDA5fjqC
+        LP
+        RP
+      CompSt (4)
+        LC
+        DefList (5)
+          Def (5)
+            Specifier (5)
+              StructSpecifier (5)
+                STRUCT
+                Tag (5)
+                  ID: vRx4CiHccbftulbzp4
+            DecList (5)
+              Dec (5)
+                VarDec (5)
+                  ID: Fd5H4H_tfVe6D
+            SEMI
+          DefList (6)
+        StmtList (6)
+        RC
+    ExtDefList (7)
