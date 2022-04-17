@@ -15,6 +15,7 @@
 // #define LEXICAL_DEBUG
 #define SYNTAX_DEBUG
 #define SEMANTIC_DEBUG
+#define IR_DEBUG
 
 /* debug info */
 
@@ -37,6 +38,14 @@
 #else
 #define info(format, ...)
 #define action(format, ...)
+#endif
+
+#ifdef IR_DEBUG
+#define note(format, ...) printf("\33[1;33m" format "\33[0m", ##__VA_ARGS__)
+#define trace(format, ...) printf("\33[1;34m" format "\33[0m", ##__VA_ARGS__)
+#else
+#define note(format, ...)
+#define trace(format, ...)
 #endif
 
 /* macros */
@@ -243,5 +252,69 @@ struct SymbolItem {
 
 /* intermediate representation */
 
+typedef struct OperandItem *Operand;
+struct OperandItem {
+  enum {
+    OP_VARIABLE,
+    OP_CONSTANT,
+    OP_REF,
+    OP_DEREF,
+    OP_STRING,
+  } kind;
+  union {
+    size_t placeno;
+    int value; // for constant
+  } u;
+};
+
+struct InterCode {
+  enum {
+    // assign
+    IR_ASSIGN,
+    IR_ASSIGN_CALL,
+    // single
+    IR_LABEL,
+    IR_FUNCTION,
+    IR_GOTO,
+    IR_RETURN,
+    IR_ARG,
+    IR_PARAM,
+    IR_READ,
+    IR_WRITE,
+    // binop
+    IR_ADD,
+    IR_SUB,
+    IR_MUL,
+    IR_DIV,
+    // relop
+    IR_RELOP,
+    // dec
+    IR_DEC,
+  } kind;
+  union {
+    struct {
+      Operand right, left;
+    } assign;
+    struct {
+      Operand result, op1, op2;
+    } binop;
+    struct {
+      Operand cond, condt, condf;
+    } relop;
+    struct {
+      Operand op;
+    } single;
+    struct {
+      Operand val, size;
+    } dec;
+  } u;
+};
+
+typedef struct InterCodesItem *InterCodes;
+struct InterCodesItem {
+  size_t lineno;
+  struct InterCode code;
+  InterCodes prev, next;
+};
 
 #endif

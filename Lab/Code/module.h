@@ -33,4 +33,8 @@ MODULE(mm) {
   void (*clear_malloc)();
 };
 
+MODULE(ir) {
+  void (*ir_translate)(struct Ast *);
+};
+
 #endif

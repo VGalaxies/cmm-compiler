@@ -1245,6 +1245,7 @@ static void program(struct Ast *node) {
   return;
 }
 
+// for lab3
 static void build_builtin_func() {
   {
     SymbolInfo builtin_read =

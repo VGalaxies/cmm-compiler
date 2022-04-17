@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
 #ifdef SEMANTIC_DEBUG
       analyzer->print_symbol_table();
 #endif
+      ir->ir_translate(root);
     }
   }
 
