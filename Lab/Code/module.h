@@ -35,6 +35,7 @@ MODULE(mm) {
 
 MODULE(ir) {
   void (*ir_translate)(struct Ast *);
+  void (*ir_generate)(FILE *);
 };
 
 #endif

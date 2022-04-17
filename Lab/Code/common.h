@@ -299,13 +299,14 @@ struct InterCode {
       Operand result, op1, op2;
     } binop;
     struct {
-      Operand cond, condt, condf;
+      Operand x, y, z;
+      int type;
     } relop;
     struct {
       Operand op;
     } single;
     struct {
-      Operand val, size;
+      Operand var, size;
     } dec;
   } u;
 };

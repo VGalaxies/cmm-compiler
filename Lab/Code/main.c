@@ -50,6 +50,10 @@ int main(int argc, char *argv[]) {
       analyzer->print_symbol_table();
 #endif
       ir->ir_translate(root);
+
+      FILE* f = fopen("a.txt", "w");
+      assert(f);
+      ir->ir_generate(f);
     }
   }
 
