@@ -75,7 +75,12 @@ static void print_type(Type type) {
 }
 
 static void print_symbol_info(SymbolInfo symbol_info) {
-  info("==%s== ", symbol_info->name);
+  if (!strcmp(symbol_info->name, "")) {
+    info("==(anonymous)== ");
+  } else {
+    info("==%s== ", symbol_info->name);
+  }
+
   switch (symbol_info->kind) {
   case TypeDef:
     info("[TypeDef]\n");
@@ -101,12 +106,12 @@ static void print_symbol_info(SymbolInfo symbol_info) {
 }
 
 static void print_symbol_table() {
-  info(">>>\n");
+  info("------------------------------\n");
   Symbol curr_symbol = symbol_table;
   while (curr_symbol) {
     print_symbol_info(curr_symbol->symbol_info);
     curr_symbol = curr_symbol->tail;
-    info(">>>\n");
+    info("------------------------------\n");
   }
 }
 
@@ -1240,8 +1245,35 @@ static void program(struct Ast *node) {
   return;
 }
 
+static void build_builtin_func() {
+  {
+    SymbolInfo builtin_read =
+        (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
+    strcpy(builtin_read->name, "read");
+    builtin_read->kind = FunctionInfo;
+    builtin_read->info.function.argument_count = 0;
+    // memcpy(builtin_read->info.function.return_type, int_type->info.type,
+    // sizeof(struct TypeItem));
+    builtin_read->info.function.return_type = int_type->info.type;
+    insert_symbol_table(builtin_read);
+  }
+  {
+    SymbolInfo builtin_write =
+        (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
+    strcpy(builtin_write->name, "write");
+    builtin_write->kind = FunctionInfo;
+    builtin_write->info.function.argument_count = 1;
+    // memcpy(builtin_write->info.function.return_type, int_type->info.type,
+    // sizeof(struct TypeItem));
+    builtin_write->info.function.return_type = int_type->info.type;
+    builtin_write->info.function.arguments[0] = int_type;
+    insert_symbol_table(builtin_write);
+  }
+}
+
 static void analysis(struct Ast *root) {
   build_naked_type();
+  build_builtin_func();
   program(root);
 }
 
@@ -1250,4 +1282,5 @@ static void analysis(struct Ast *root) {
 MODULE_DEF(analyzer) = {
     .semantic_analysis = analysis,
     .print_symbol_table = print_symbol_table,
+    .lookup = find_symbol_table,
 };

@@ -45,9 +45,11 @@ int main(int argc, char *argv[]) {
     struct Ast *root = parser->get_ast_root();
     analyzer->semantic_analysis(root);
 
+    if (!semantic_errors) {
 #ifdef SEMANTIC_DEBUG
-    analyzer->print_symbol_table();
+      analyzer->print_symbol_table();
 #endif
+    }
   }
 
   mm->clear_malloc();

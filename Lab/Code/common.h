@@ -13,8 +13,8 @@
 /* debug control */
 
 // #define LEXICAL_DEBUG
-// #define SYNTAX_DEBUG
-// #define SEMANTIC_DEBUG
+#define SYNTAX_DEBUG
+#define SEMANTIC_DEBUG
 
 /* debug info */
 
@@ -240,5 +240,8 @@ struct SymbolItem {
   SymbolInfo symbol_info;
   Symbol tail;
 };
+
+/* intermediate representation */
+
 
 #endif
