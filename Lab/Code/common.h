@@ -14,9 +14,9 @@
 /* debug control */
 
 // #define LEXICAL_DEBUG
-#define SYNTAX_DEBUG
-#define SEMANTIC_DEBUG
-#define IR_DEBUG
+// #define SYNTAX_DEBUG
+// #define SEMANTIC_DEBUG
+// #define IR_DEBUG
 
 /* debug info */
 
@@ -261,17 +261,19 @@ struct SymbolItem {
 typedef struct OperandItem *Operand;
 struct OperandItem {
   enum {
+    OP_ADDRESS,
+    OP_ADDRESS_ORI,
+    OP_ADDRESS_FIN,
+    OP_ADDRESS_PARAM,
     OP_VARIABLE,
     OP_CONSTANT,
-    OP_CONSTANT_DEC, // for dec size
-    OP_REF,
-    OP_DEREF,
-    OP_STRING, // for label
+    OP_LABEL, // for label
   } kind;
   union {
     size_t placeno;
     unsigned value; // for constant, note unsigned
   } u;
+  Type type;
 };
 
 struct InterCode {
