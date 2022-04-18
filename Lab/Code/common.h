@@ -194,11 +194,12 @@ struct Ast {
 /* lexical attribute definition */
 
 #define MAX_ATTR 1024
+#define LENGTH 64
 union Attribute {
   int _attr;        // for TYPE or RELOP
   unsigned _int;    // for INT
   float _float;     // for FLOAT
-  char _string[64]; // for ID
+  char _string[LENGTH]; // for ID
 };
 
 /* semantic type system definition */
@@ -223,7 +224,7 @@ struct TypeItem {
 };
 
 struct FieldListItem {
-  char name[64];  // 域的名字
+  char name[LENGTH];  // 域的名字
   Type type;      // 域的类型
   FieldList tail; // 下一个域
   size_t offset;
@@ -239,7 +240,7 @@ typedef struct SymbolInfoItem *SymbolInfo;
 
 struct SymbolInfoItem {
   enum { TypeDef, VariableInfo, FunctionInfo } kind;
-  char name[64];
+  char name[LENGTH];
   union {
     Type type;
     struct {
@@ -262,9 +263,10 @@ struct OperandItem {
   enum {
     OP_VARIABLE,
     OP_CONSTANT,
+    OP_CONSTANT_DEC, // for dec size
     OP_REF,
     OP_DEREF,
-    OP_STRING,
+    OP_STRING, // for label
   } kind;
   union {
     size_t placeno;

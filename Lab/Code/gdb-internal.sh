@@ -1,4 +1,4 @@
 file ./parser
 set print pretty on
-b variable_declaration
+b main.c:55
 r ../Test/lab3/type.c

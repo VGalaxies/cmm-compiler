@@ -16,15 +16,15 @@ static size_t next_varno = 0;
 static size_t next_labelno = 0;
 
 static char *gen_var() {
-  char *var = (char *)mm->log_malloc((64 * sizeof(char)));
-  memset(var, 0, 64 * sizeof(char));
+  char *var = (char *)mm->log_malloc((LENGTH * sizeof(char)));
+  memset(var, 0, LENGTH * sizeof(char));
   sprintf(var, "ir_var_%zu", next_varno++);
   return var;
 }
 
 static char *gen_label() {
-  char *label = (char *)mm->log_malloc((64 * sizeof(char)));
-  memset(label, 0, 64 * sizeof(char));
+  char *label = (char *)mm->log_malloc((LENGTH * sizeof(char)));
+  memset(label, 0, LENGTH * sizeof(char));
   sprintf(label, "ir_lable_%zu", next_labelno++);
   return label;
 }
@@ -37,6 +37,26 @@ static void store_place(const char *name, size_t placeno) {
   placemap[placeno] = name;
 }
 
+static size_t load_placeno(const char *name, int *success) {
+  size_t res = -1;
+  for (size_t i = 0; i < next_placeno; ++i) {
+    if (!strcmp(placemap[i], name)) {
+      res = i;
+      break;
+    }
+  }
+
+  if (res == -1) {
+    *success = 0;
+    res = next_placeno;
+    store_place(name, next_placeno++);
+  } else {
+    *success = 1;
+  }
+
+  return res;
+}
+
 /* ir */
 
 static InterCodes ir_st;
@@ -46,9 +66,21 @@ static void init_ir() {
   ir_st = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
   ir_st->prev = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
   ir_st->prev->lineno = 0; // for increasing lineno
-
   ir_st->next = NULL;
+
   ir_ed = ir_st;
+  ir_ed->lineno = -1; // mark ir ed
+}
+
+static void extend_ir() {
+  ir_ed->lineno = ir_ed->prev->lineno + 1;
+  ir_ed->next = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
+
+  InterCodes tmp = ir_ed;
+  ir_ed = ir_ed->next;
+  ir_ed->prev = tmp;
+  ir_ed->next = NULL;
+  ir_ed->lineno = -1;
 }
 
 static void construct_single_ir(int kind, Operand op) {
@@ -57,13 +89,7 @@ static void construct_single_ir(int kind, Operand op) {
       .u.single.op = op,
   };
 
-  ir_ed->lineno = ir_ed->prev->lineno + 1;
-  ir_ed->next = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
-
-  InterCodes tmp = ir_ed;
-  ir_ed = ir_ed->next;
-  ir_ed->prev = tmp;
-  ir_ed->next = NULL;
+  extend_ir();
 }
 
 static void construct_assign_ir(int kind, Operand left, Operand right) {
@@ -73,13 +99,7 @@ static void construct_assign_ir(int kind, Operand left, Operand right) {
       .u.assign.left = left,
   };
 
-  ir_ed->lineno = ir_ed->prev->lineno + 1;
-  ir_ed->next = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
-
-  InterCodes tmp = ir_ed;
-  ir_ed = ir_ed->next;
-  ir_ed->prev = tmp;
-  ir_ed->next = NULL;
+  extend_ir();
 }
 
 static void construct_binop_ir(int kind, Operand result, Operand op1,
@@ -91,13 +111,7 @@ static void construct_binop_ir(int kind, Operand result, Operand op1,
       .u.binop.result = result,
   };
 
-  ir_ed->lineno = ir_ed->prev->lineno + 1;
-  ir_ed->next = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
-
-  InterCodes tmp = ir_ed;
-  ir_ed = ir_ed->next;
-  ir_ed->prev = tmp;
-  ir_ed->next = NULL;
+  extend_ir();
 }
 
 static void construct_relop_ir(int kind, Operand x, Operand y, Operand z,
@@ -110,16 +124,18 @@ static void construct_relop_ir(int kind, Operand x, Operand y, Operand z,
       .u.relop.type = relop_type,
   };
 
-  ir_ed->lineno = ir_ed->prev->lineno + 1;
-  ir_ed->next = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
-
-  InterCodes tmp = ir_ed;
-  ir_ed = ir_ed->next;
-  ir_ed->prev = tmp;
-  ir_ed->next = NULL;
+  extend_ir();
 }
 
-// static void construct_dec_ir(int kind, Operand var, Operand size) {}
+static void construct_dec_ir(int kind, Operand var, Operand size) {
+  ir_ed->code = (struct InterCode){
+      .kind = kind,
+      .u.dec.var = var,
+      .u.dec.size = size,
+  };
+
+  extend_ir();
+}
 
 static const char *interp_op(Operand op) {
   switch (op->kind) {
@@ -127,16 +143,32 @@ static const char *interp_op(Operand op) {
   case OP_STRING:
     return placemap[op->u.placeno];
   case OP_CONSTANT: {
-    char *res = (char *)mm->log_malloc(32 * sizeof(char));
-    memset(res, 0, 32 * sizeof(char));
+    char *res = (char *)mm->log_malloc(16 * sizeof(char));
+    memset(res, 0, 16 * sizeof(char));
     sprintf(res, "#%d", op->u.value);
     return res;
   }
-  case OP_REF:
-    break;
-  case OP_DEREF:
-    break;
+  case OP_CONSTANT_DEC: {
+    char *res = (char *)mm->log_malloc(16 * sizeof(char));
+    memset(res, 0, 16 * sizeof(char));
+    sprintf(res, "%d", op->u.value); // for IR_DEC size, no # prefix
+    return res;
+  }
+  case OP_REF: {
+    char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
+    memset(res, 0, (LENGTH + 1) * sizeof(char));
+    sprintf(res, "&%s", placemap[op->u.placeno]);
+    return res;
+  }
+  case OP_DEREF: {
+    char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
+    memset(res, 0, (LENGTH + 1) * sizeof(char));
+    sprintf(res, "*%s", placemap[op->u.placeno]);
+    return res;
+  }
   default:
+    printf("IR Error: Broken invariant.\n");
+    longjmp(buf, 1);
     break;
   }
 
@@ -167,6 +199,8 @@ static const char *interp_relop(int type) {
     sprintf(res, ">=");
     break;
   default:
+    printf("IR Error: Broken invariant.\n");
+    longjmp(buf, 1);
     break;
   }
 
@@ -229,8 +263,12 @@ static void ir_generate_step(FILE *f, struct InterCode ir) {
             interp_op(ir.u.relop.z));
     break;
   case IR_DEC:
+    fprintf(f, "DEC %s %s\n", interp_op(ir.u.dec.var),
+            interp_op(ir.u.dec.size));
     break;
   default:
+    printf("IR Error: Broken invariant.\n");
+    longjmp(buf, 1);
     break;
   }
 
@@ -240,7 +278,7 @@ static void ir_generate_step(FILE *f, struct InterCode ir) {
 static void ir_generate(FILE *f) {
   InterCodes curr = ir_st;
   while (curr) {
-    if (curr->lineno == 0) {
+    if (curr->lineno == -1) { // ir end
       break;
     }
     ir_generate_step(f, curr->code);
@@ -275,6 +313,7 @@ static void translate_args(struct Ast *node, SymbolInfo func) {
   assert(node->type == _Args);
 
   Operand args_op[MAX_ARGUMENT];
+  memset(args_op, 0, sizeof(args_op));
 
   struct Ast *curr_node = node;
   for (size_t i = 0; i < func->info.function.argument_count; ++i) {
@@ -289,8 +328,9 @@ static void translate_args(struct Ast *node, SymbolInfo func) {
   if (!strcmp(func->name, "write")) {
     construct_single_ir(IR_WRITE, args_op[0]);
   } else {
-    for (size_t i = func->info.function.argument_count - 1; i >= 0; --i) {
-      construct_single_ir(IR_PARAM, args_op[i]);
+    for (int i = func->info.function.argument_count - 1; i >= 0;
+         --i) { // note int
+      construct_single_ir(IR_ARG, args_op[i]);
     }
   }
 }
@@ -350,6 +390,7 @@ static void translate_cond(struct Ast *node, Operand label_true,
     return;
   }
 
+  // serve int as bool
   store_place(gen_var(), next_placeno);
   Operand x = translate_exp(node, next_placeno++);
   Operand y = (Operand)mm->log_malloc(sizeof(struct OperandItem));
@@ -359,6 +400,7 @@ static void translate_cond(struct Ast *node, Operand label_true,
 
   construct_relop_ir(IR_RELOP, x, y, z, _NE);
   construct_single_ir(IR_GOTO, label_false);
+
   return;
 }
 
@@ -390,10 +432,12 @@ static Operand translate_exp(struct Ast *node,
         VariableInfo, parser->get_attribute(id_node->attr_index)._string);
     assert(var);
 
+    int success;
+    size_t var_no = load_placeno(var->name, &success);
+
     Operand op = (Operand)mm->log_malloc(sizeof(struct OperandItem));
     op->kind = OP_VARIABLE;
-    op->u.placeno = next_placeno;
-    store_place(var->name, next_placeno++);
+    op->u.placeno = var_no;
 
     // place unused
     return op;
@@ -429,10 +473,12 @@ static Operand translate_exp(struct Ast *node,
       return op;
     } else {
       // user-defined function
+      int success;
+      size_t var_no = load_placeno(func->name, &success);
+
       Operand right = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-      right->kind = OP_STRING;
-      right->u.placeno = next_placeno;
-      store_place(func->name, next_placeno++);
+      right->kind = OP_VARIABLE;
+      right->u.placeno = var_no;
 
       Operand left = (Operand)mm->log_malloc(sizeof(struct OperandItem));
       left->kind = OP_VARIABLE;
@@ -454,10 +500,12 @@ static Operand translate_exp(struct Ast *node,
 
     if (strcmp(func->name, "write")) {
       // user-defined function
+      int success;
+      size_t var_no = load_placeno(func->name, &success);
+
       Operand right = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-      right->kind = OP_STRING;
-      right->u.placeno = next_placeno;
-      store_place(func->name, next_placeno++);
+      right->kind = OP_VARIABLE;
+      right->u.placeno = var_no;
 
       Operand left = (Operand)mm->log_malloc(sizeof(struct OperandItem));
       left->kind = OP_VARIABLE;
@@ -503,7 +551,59 @@ static Operand translate_exp(struct Ast *node,
 
   // array
   if (check_node(node, 4, _Exp, _LB, _Exp, _RB)) {
-    return NULL;
+    // TODO
+    if (!check_node(node->children[0], 1, _ID) ||
+        !check_node(node->children[2], 1, _INT)) {
+      printf("IR Error: Code contains non-naive array type.\n");
+      longjmp(buf, 1);
+    }
+
+    struct Ast *id_node = node->children[0]->children[0];
+    struct Ast *int_node = node->children[2]->children[0];
+
+    const char *arr_name_ori =
+        parser->get_attribute(id_node->attr_index)._string;
+    char *arr_name =
+        (char *)mm->log_malloc(LENGTH * sizeof(char)); // copy for safety
+    strncpy(arr_name, arr_name_ori, LENGTH);
+
+    SymbolInfo arr_sym = analyzer->lookup(VariableInfo, arr_name);
+    assert(arr_sym);
+
+    int success;
+    size_t arr_no = load_placeno(arr_name, &success);
+    if (!success) { // use for the first time
+      // alloc space
+      Operand var = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+      var->kind = OP_VARIABLE;
+      var->u.placeno = arr_no;
+
+      Operand size = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+      size->kind = OP_CONSTANT_DEC;
+      size->u.value = arr_sym->info.type->width;
+
+      construct_dec_ir(IR_DEC, var, size);
+    }
+
+    Operand op1 = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+    op1->kind = OP_REF;
+    op1->u.placeno = arr_no;
+
+    Operand op2 = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+    op2->kind = OP_CONSTANT;
+    op2->u.value = 4 * parser->get_attribute(int_node->attr_index)._int;
+
+    Operand result = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+    result->kind = OP_VARIABLE;
+    result->u.placeno = placeno;
+
+    construct_binop_ir(IR_ADD, result, op1, op2);
+
+    Operand ret = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+    ret->kind = OP_DEREF;
+    ret->u.placeno = placeno;
+
+    return ret;
   }
 
   // structure
@@ -631,11 +731,13 @@ static void translate_dec(struct Ast *node) {
           VariableInfo, parser->get_attribute(id_node->attr_index)._string);
       assert(var);
 
-      store_place(var->name, next_placeno);
+      int success;
+      size_t var_no = load_placeno(var->name, &success);
       Operand left = (Operand)mm->log_malloc(sizeof(struct OperandItem));
       left->kind = OP_VARIABLE;
-      left->u.placeno = next_placeno;
+      left->u.placeno = var_no;
 
+      store_place(gen_var(), next_placeno);
       Operand right = translate_exp(node->children[2], next_placeno++);
       construct_assign_ir(IR_ASSIGN, left, right);
     }
@@ -901,19 +1003,24 @@ static void translate_func(struct Ast *node, SymbolInfo func) {
   assert(node->type == _CompSt);
 
   // FUNCTION f :
+  int success;
+  size_t var_no = load_placeno(func->name, &success);
+
   Operand op = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-  op->kind = OP_STRING;
-  op->u.placeno = next_placeno;
-  store_place(func->name, next_placeno++);
+  op->kind = OP_VARIABLE;
+  op->u.placeno = var_no;
 
   construct_single_ir(IR_FUNCTION, op);
 
   // PARAM x
   for (size_t i = 0; i < func->info.function.argument_count; ++i) {
+    int success;
+    size_t var_no =
+        load_placeno(func->info.function.arguments[i]->name, &success);
+
     Operand op = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    op->kind = OP_STRING;
-    op->u.placeno = next_placeno;
-    store_place(func->info.function.arguments[i]->name, next_placeno++);
+    op->kind = OP_VARIABLE;
+    op->u.placeno = var_no;
 
     construct_single_ir(IR_PARAM, op);
   }
