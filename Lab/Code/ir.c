@@ -57,6 +57,7 @@ static void construct_single_ir(int kind, Operand op) {
   InterCodes tmp = ir_ed;
   ir_ed = ir_ed->next;
   ir_ed->prev = tmp;
+  ir_ed->next = NULL;
 }
 
 static void construct_assign_ir(int kind, Operand left, Operand right) {
@@ -72,6 +73,7 @@ static void construct_assign_ir(int kind, Operand left, Operand right) {
   InterCodes tmp = ir_ed;
   ir_ed = ir_ed->next;
   ir_ed->prev = tmp;
+  ir_ed->next = NULL;
 }
 
 static void construct_binop_ir(int kind, Operand result, Operand op1,
@@ -89,6 +91,7 @@ static void construct_binop_ir(int kind, Operand result, Operand op1,
   InterCodes tmp = ir_ed;
   ir_ed = ir_ed->next;
   ir_ed->prev = tmp;
+  ir_ed->next = NULL;
 }
 
 static void construct_relop_ir(int kind, Operand x, Operand y, Operand z,
@@ -107,6 +110,7 @@ static void construct_relop_ir(int kind, Operand x, Operand y, Operand z,
   InterCodes tmp = ir_ed;
   ir_ed = ir_ed->next;
   ir_ed->prev = tmp;
+  ir_ed->next = NULL;
 }
 
 // static void construct_dec_ir(int kind, Operand var, Operand size) {}
@@ -117,10 +121,10 @@ static const char *interp_op(Operand op) {
   case OP_STRING:
     return placemap[op->u.placeno];
   case OP_CONSTANT: {
-    char *tmp = (char *)mm->log_malloc(32 * sizeof(char));
-    memset(tmp, 0, 32 * sizeof(char));
-    sprintf(tmp, "#%d", op->u.value);
-    return tmp;
+    char *res = (char *)mm->log_malloc(32 * sizeof(char));
+    memset(res, 0, 32 * sizeof(char));
+    sprintf(res, "#%d", op->u.value);
+    return res;
   }
   case OP_REF:
     break;
@@ -134,88 +138,33 @@ static const char *interp_op(Operand op) {
 }
 
 static const char *interp_relop(int type) {
-  char *tmp = (char *)mm->log_malloc(4 * sizeof(char));
-  memset(tmp, 0, 4 * sizeof(char));
+  char *res = (char *)mm->log_malloc(4 * sizeof(char));
+  memset(res, 0, 4 * sizeof(char));
 
   switch (type) {
   case _LT:
-    sprintf(tmp, "<");
+    sprintf(res, "<");
+    break;
   case _LE:
-    sprintf(tmp, "<=");
+    sprintf(res, "<=");
+    break;
   case _EQ:
-    sprintf(tmp, "==");
+    sprintf(res, "==");
+    break;
   case _NE:
-    sprintf(tmp, "!=");
+    sprintf(res, "!=");
+    break;
   case _GT:
-    sprintf(tmp, ">");
+    sprintf(res, ">");
+    break;
   case _GE:
-    sprintf(tmp, ">=");
-  default:
-    break;
-  }
-
-  return tmp;
-}
-
-static void ir_generate_step_foo(struct InterCode ir) {
-  switch (ir.kind) {
-  case IR_ASSIGN:
-    printf("%s := %s\n", interp_op(ir.u.assign.left),
-            interp_op(ir.u.assign.right));
-    break;
-  case IR_ASSIGN_CALL:
-    printf("%s := CALL %s\n", interp_op(ir.u.assign.left),
-            interp_op(ir.u.assign.right));
-    break;
-  case IR_LABEL:
-    printf("LABEL %s :\n", interp_op(ir.u.single.op));
-    break;
-  case IR_FUNCTION:
-    printf("FUNCTION %s :\n", interp_op(ir.u.single.op));
-    break;
-  case IR_GOTO:
-    printf("GOTO %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_RETURN:
-    printf("RETURN %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_ARG:
-    printf("ARG %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_PARAM:
-    printf("PARAM %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_READ:
-    printf("READ %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_WRITE:
-    printf("WRITE %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_ADD:
-    printf("%s := %s + %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_SUB:
-    printf("%s := %s - %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_MUL:
-    printf("%s := %s * %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_DIV:
-    printf("%s := %s / %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_RELOP:
-    printf("IF %s %s %s GOTO %s\n", interp_op(ir.u.relop.x),
-            interp_relop(ir.u.relop.type), interp_op(ir.u.relop.y),
-            interp_op(ir.u.relop.z));
-  case IR_DEC:
+    sprintf(res, ">=");
     break;
   default:
     break;
   }
+
+  return res;
 }
 
 static void ir_generate_step(FILE *f, struct InterCode ir) {
@@ -272,18 +221,23 @@ static void ir_generate_step(FILE *f, struct InterCode ir) {
     fprintf(f, "IF %s %s %s GOTO %s\n", interp_op(ir.u.relop.x),
             interp_relop(ir.u.relop.type), interp_op(ir.u.relop.y),
             interp_op(ir.u.relop.z));
+    break;
   case IR_DEC:
     break;
   default:
     break;
   }
+
+  fflush(f);
 }
 
 static void ir_generate(FILE *f) {
   InterCodes curr = ir_st;
   while (curr) {
+    if (curr->lineno == 0) {
+      break;
+    }
     ir_generate_step(f, curr->code);
-    ir_generate_step_foo(curr->code);
     curr = curr->next;
   }
 }
@@ -423,6 +377,34 @@ static Operand translate_exp(struct Ast *node,
     return left;
   }
 
+  // identifier
+  if (check_node(node, 1, _ID)) {
+    struct Ast *id_node = node->children[0];
+    SymbolInfo var = analyzer->lookup(
+        VariableInfo, parser->get_attribute(id_node->attr_index)._string);
+    assert(var);
+
+    Operand op = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+    op->kind = OP_VARIABLE;
+    op->u.placeno = next_placeno;
+    store_place(var->name, next_placeno++);
+
+    // place unused
+    return op;
+  }
+
+  // literal
+  if (check_node(node, 1, _INT)) {
+    int literal = parser->get_attribute(node->children[0]->attr_index)._int;
+
+    Operand op = (Operand)mm->log_malloc(sizeof(struct OperandItem));
+    op->kind = OP_CONSTANT;
+    op->u.value = literal;
+
+    // place unused
+    return op;
+  }
+
   // function call without arguments
   if (check_node(node, 3, _ID, _LP, _RP)) {
     struct Ast *func_id_node = node->children[0];
@@ -481,48 +463,6 @@ static Operand translate_exp(struct Ast *node,
       // construct IR_WRITE in `translate_args` already
       return NULL;
     }
-  }
-
-  // TODO
-  if (placeno == -1) {
-    // avoid unused ir
-    return NULL;
-  }
-
-  // identifier
-  if (check_node(node, 1, _ID)) {
-    struct Ast *id_node = node->children[0];
-    SymbolInfo var = analyzer->lookup(
-        VariableInfo, parser->get_attribute(id_node->attr_index)._string);
-    assert(var);
-
-    Operand right = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    right->kind = OP_VARIABLE;
-    right->u.placeno = next_placeno;
-    store_place(var->name, next_placeno++);
-
-    Operand left = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    left->kind = OP_VARIABLE;
-    left->u.placeno = placeno;
-
-    construct_assign_ir(IR_ASSIGN, left, right);
-    return left;
-  }
-
-  // literal
-  if (check_node(node, 1, _INT)) {
-    int literal = parser->get_attribute(node->attr_index)._int;
-
-    Operand right = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    right->kind = OP_CONSTANT;
-    right->u.value = literal;
-
-    Operand left = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    left->kind = OP_VARIABLE;
-    left->u.placeno = placeno;
-
-    construct_assign_ir(IR_ASSIGN, left, right);
-    return left;
   }
 
   // literals
@@ -669,7 +609,7 @@ static void translate_dec(struct Ast *node) {
 
   /* Dec -> VarDec */
   if (check_node(node, 1, _VarDec)) {
-    trace("ignore local variable translate_def\n");
+    trace("ignore local variable definition\n");
     return;
   }
 
@@ -739,6 +679,7 @@ static void translate_deflist(struct Ast *node) {
 
   /* DefList -> Def EMPTY */
   if (check_node(node, 2, _Def, _EMPTY)) {
+    translate_def(node->children[0]);
     note("hit EMPTY\n");
     return;
   }
@@ -788,8 +729,8 @@ static void translate_stmt(struct Ast *node) {
     label_true->u.placeno = label_true_no;
 
     Operand label_false = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    label_true->kind = OP_STRING;
-    label_true->u.placeno = label_false_no;
+    label_false->kind = OP_STRING;
+    label_false->u.placeno = label_false_no;
 
     translate_cond(node->children[2], label_true, label_false);
 
@@ -819,8 +760,8 @@ static void translate_stmt(struct Ast *node) {
     label_true->u.placeno = label_true_no;
 
     Operand label_false = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    label_true->kind = OP_STRING;
-    label_true->u.placeno = label_false_no;
+    label_false->kind = OP_STRING;
+    label_false->u.placeno = label_false_no;
 
     translate_cond(node->children[2], label_true, label_false);
 
@@ -870,8 +811,8 @@ static void translate_stmt(struct Ast *node) {
     label_true->u.placeno = label_true_no;
 
     Operand label_false = (Operand)mm->log_malloc(sizeof(struct OperandItem));
-    label_true->kind = OP_STRING;
-    label_true->u.placeno = label_false_no;
+    label_false->kind = OP_STRING;
+    label_false->u.placeno = label_false_no;
 
     // LABEL label_begin
     {
@@ -977,13 +918,13 @@ static void translate_ext_def(struct Ast *node) {
 
   /* ExtDef -> Specifier SEMI */
   if (check_node(node, 2, _Specifier, _SEMI)) {
-    trace("ignore structure translate_def\n");
+    trace("ignore structure definition\n");
     return;
   }
 
   /* ExtDef -> Specifier ExtDecList SEMI */
   if (check_node(node, 3, _Specifier, _ExtDecList, _SEMI)) {
-    trace("ignore global variable translate_def\n");
+    trace("ignore global variable definition\n");
     return;
   }
 
