@@ -1,6 +1,11 @@
 #include "common.h"
 #include "module.h"
 
+/* error handler */
+
+static jmp_buf buf;
+int ir_errors = 0;
+
 /* place, var, label */
 
 #define MAX_PLACE 1024
@@ -13,20 +18,21 @@ static size_t next_labelno = 0;
 static char *gen_var() {
   char *var = (char *)mm->log_malloc((64 * sizeof(char)));
   memset(var, 0, 64 * sizeof(char));
-  sprintf(var, "var%zu", next_varno++);
+  sprintf(var, "ir_var_%zu", next_varno++);
   return var;
 }
 
 static char *gen_label() {
   char *label = (char *)mm->log_malloc((64 * sizeof(char)));
   memset(label, 0, 64 * sizeof(char));
-  sprintf(label, "lable%zu", next_labelno++);
+  sprintf(label, "ir_lable_%zu", next_labelno++);
   return label;
 }
 
 static void store_place(const char *name, size_t placeno) {
   if (placeno >= MAX_PLACE) {
-    assert(0); // TODO
+    printf("IR Error: Placemap overflow.\n");
+    longjmp(buf, 1);
   }
   placemap[placeno] = name;
 }
@@ -39,7 +45,7 @@ static InterCodes ir_ed;
 static void init_ir() {
   ir_st = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
   ir_st->prev = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
-  ir_st->prev->lineno = 0;
+  ir_st->prev->lineno = 0; // for increasing lineno
 
   ir_st->next = NULL;
   ir_ed = ir_st;
@@ -265,7 +271,7 @@ static int check_node(struct Ast *node, size_t count, ...) {
 /* traverse and translate functions */
 static Operand translate_exp(struct Ast *node, size_t placeno);
 static void translate_args(struct Ast *node, SymbolInfo func) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Args);
 
   Operand args_op[MAX_ARGUMENT];
@@ -291,7 +297,7 @@ static void translate_args(struct Ast *node, SymbolInfo func) {
 
 static void translate_cond(struct Ast *node, Operand label_true,
                            Operand label_false) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Exp);
 
   if (check_node(node, 2, _NOT, _Exp)) {
@@ -358,7 +364,7 @@ static void translate_cond(struct Ast *node, Operand label_true,
 
 static Operand translate_exp(struct Ast *node,
                              size_t placeno) { // return op for args...
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Exp);
 
   // assignment
@@ -395,7 +401,8 @@ static Operand translate_exp(struct Ast *node,
 
   // literal
   if (check_node(node, 1, _INT)) {
-    int literal = parser->get_attribute(node->children[0]->attr_index)._int;
+    unsigned literal =
+        parser->get_attribute(node->children[0]->attr_index)._int;
 
     Operand op = (Operand)mm->log_malloc(sizeof(struct OperandItem));
     op->kind = OP_CONSTANT;
@@ -467,7 +474,8 @@ static Operand translate_exp(struct Ast *node,
 
   // literals
   if (check_node(node, 1, _FLOAT)) {
-    trace("ignore float literals\n");
+    printf("IR Error: Code contains float literals.\n");
+    longjmp(buf, 1);
     return NULL;
   }
 
@@ -591,7 +599,8 @@ static Operand translate_exp(struct Ast *node,
       kind = IR_DIV;
       break;
     default:
-      trace("broken invariant\n");
+      printf("IR Error: Broken invariant.\n");
+      longjmp(buf, 1);
       break;
     }
 
@@ -604,12 +613,12 @@ static Operand translate_exp(struct Ast *node,
 }
 
 static void translate_dec(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Dec);
 
   /* Dec -> VarDec */
   if (check_node(node, 1, _VarDec)) {
-    trace("ignore local variable definition\n");
+    trace("ignore local variable declaration\n");
     return;
   }
 
@@ -639,7 +648,7 @@ static void translate_dec(struct Ast *node) {
 }
 
 static void translate_declist(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _DecList);
 
   /* DecList -> Dec */
@@ -660,7 +669,7 @@ static void translate_declist(struct Ast *node) {
 }
 
 static void translate_def(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Def);
 
   /* Def -> Specifier DecList SEMI */
@@ -674,13 +683,13 @@ static void translate_def(struct Ast *node) {
 }
 
 static void translate_deflist(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _DefList);
 
   /* DefList -> Def EMPTY */
   if (check_node(node, 2, _Def, _EMPTY)) {
     translate_def(node->children[0]);
-    note("hit EMPTY\n");
+    action("hit EMPTY\n");
     return;
   }
 
@@ -697,7 +706,7 @@ static void translate_deflist(struct Ast *node) {
 
 static void translate_compst(struct Ast *node);
 static void translate_stmt(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Stmt);
 
   if (check_node(node, 2, _Exp, _SEMI)) {
@@ -849,13 +858,13 @@ static void translate_stmt(struct Ast *node) {
 }
 
 static void translate_stmtlist(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _StmtList);
 
   /* StmtList -> Stmt EMPTY */
   if (check_node(node, 2, _Stmt, _EMPTY)) {
     translate_stmt(node->children[0]);
-    note("hit EMPTY\n");
+    action("hit EMPTY\n");
     return;
   }
 
@@ -871,7 +880,7 @@ static void translate_stmtlist(struct Ast *node) {
 }
 
 static void translate_compst(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _CompSt);
 
   /* CompSt -> LC DefList StmtList RC */
@@ -913,7 +922,7 @@ static void translate_func(struct Ast *node, SymbolInfo func) {
 }
 
 static void translate_ext_def(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDef);
 
   /* ExtDef -> Specifier SEMI */
@@ -924,7 +933,7 @@ static void translate_ext_def(struct Ast *node) {
 
   /* ExtDef -> Specifier ExtDecList SEMI */
   if (check_node(node, 3, _Specifier, _ExtDecList, _SEMI)) {
-    trace("ignore global variable definition\n");
+    trace("ignore global variable declaration\n");
     return;
   }
 
@@ -944,12 +953,12 @@ static void translate_ext_def(struct Ast *node) {
 }
 
 static void translate_ext_deflist(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _ExtDefList);
 
   if (check_node(node, 2, _ExtDef, _EMPTY)) {
     translate_ext_def(node->children[0]);
-    note("hit EMPTY\n");
+    action("hit EMPTY\n");
     return;
   }
 
@@ -964,7 +973,7 @@ static void translate_ext_deflist(struct Ast *node) {
 }
 
 static void translate_program(struct Ast *node) {
-  note("hit %s\n", unit_names[node->type]);
+  action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Program);
 
   if (check_node(node, 1, _ExtDefList)) {
@@ -977,8 +986,13 @@ static void translate_program(struct Ast *node) {
 }
 
 static void translate(struct Ast *root) {
-  init_ir();
-  translate_program(root);
+  if (!setjmp(buf)) {
+    init_ir();
+    translate_program(root);
+  } else {
+    printf("IR Error: Translation fails.\n");
+    ir_errors++;
+  }
 }
 
 /* interface */

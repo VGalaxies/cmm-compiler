@@ -10,6 +10,7 @@
 extern int syntax_errors;
 extern int lexical_errors;
 extern int semantic_errors;
+extern int ir_errors;
 
 /* program entry */
 
@@ -51,10 +52,12 @@ int main(int argc, char *argv[]) {
 #endif
       ir->ir_translate(root);
 
-      FILE *f = fopen("/home/vgalaxy/Desktop/shared/demo.ir", "w");
-      assert(f);
-      ir->ir_generate(f);
-      ir->ir_generate(stdout);
+      if (!ir_errors) {
+        FILE *f = fopen("/home/vgalaxy/Desktop/shared/demo.ir", "w");
+        assert(f);
+        ir->ir_generate(f);
+        ir->ir_generate(stdout);
+      }
     }
   }
 

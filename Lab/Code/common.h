@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <limits.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -34,18 +35,20 @@
 
 #ifdef SEMANTIC_DEBUG
 #define info(format, ...) printf("\33[1;32m" format "\33[0m", ##__VA_ARGS__)
-#define action(format, ...) printf("\33[1;36m" format "\33[0m", ##__VA_ARGS__)
 #else
 #define info(format, ...)
-#define action(format, ...)
 #endif
 
 #ifdef IR_DEBUG
-#define note(format, ...) printf("\33[1;33m" format "\33[0m", ##__VA_ARGS__)
 #define trace(format, ...) printf("\33[1;34m" format "\33[0m", ##__VA_ARGS__)
 #else
-#define note(format, ...)
 #define trace(format, ...)
+#endif
+
+#if defined(SEMANTIC_DEBUG) || defined(IR_DEBUG)
+#define action(format, ...) printf("\33[1;36m" format "\33[0m", ##__VA_ARGS__)
+#else
+#define action(format, ...)
 #endif
 
 /* macros */
@@ -263,7 +266,7 @@ struct OperandItem {
   } kind;
   union {
     size_t placeno;
-    int value; // for constant
+    unsigned value; // for constant, note unsigned
   } u;
 };
 

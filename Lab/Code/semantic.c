@@ -14,7 +14,7 @@ static void semantic_error(int type, int lineno) {
 static Symbol symbol_table = NULL;
 
 static void insert_symbol_table(SymbolInfo symbol_info) {
-  action("insert symbol %s\n", symbol_info->name);
+  info("insert symbol %s\n", symbol_info->name);
 
   Symbol symbol = (Symbol)mm->log_malloc(sizeof(struct SymbolItem));
   symbol->tail = symbol_table;
@@ -23,7 +23,7 @@ static void insert_symbol_table(SymbolInfo symbol_info) {
 }
 
 static SymbolInfo find_symbol_table(int kind, const char *name) {
-  action("find symbol %s\n", name);
+  info("find symbol %s\n", name);
 
   Symbol curr_symbol = symbol_table;
   while (curr_symbol) {
@@ -550,7 +550,7 @@ static void variable_declaration(struct Ast *node, Type type,
   }
 
   if (curr_dimension == MAX_BRACKET) {
-    action("ignore transfinite dimensions");
+    info("ignore transfinite dimensions");
     return;
   }
 
@@ -803,7 +803,7 @@ static Type expression(struct Ast *node, int required_lval) {
       return NULL;
     }
     if (symbol_info->kind == TypeDef) {
-      action("ignore like `struct A {...}; A();`");
+      info("ignore like `struct A {...}; A();`");
       return NULL;
     }
 
@@ -984,7 +984,7 @@ static void statement(struct Ast *node, SymbolInfo function_symbol_info) {
   if (check_node(node, 5, _IF, _LP, _Exp, _RP, _Stmt)) {
     Type cond = expression(node->children[2], 0);
     if (!is_basic_type(cond, _INT)) {
-      // action("ignore like `if (1.0) {...}`");
+      // info("ignore like `if (1.0) {...}`");
       semantic_error(7, node->children[2]->lineno);
     }
     statement(node->children[4], function_symbol_info);
@@ -994,7 +994,7 @@ static void statement(struct Ast *node, SymbolInfo function_symbol_info) {
   if (check_node(node, 7, _IF, _LP, _Exp, _RP, _Stmt, _ELSE, _Stmt)) {
     Type cond = expression(node->children[2], 0);
     if (!is_basic_type(cond, _INT)) {
-      // action("ignore like `if (1.0) {...} else {...}`");
+      // info("ignore like `if (1.0) {...} else {...}`");
       semantic_error(7, node->children[2]->lineno);
     }
     statement(node->children[4], function_symbol_info);
@@ -1005,7 +1005,7 @@ static void statement(struct Ast *node, SymbolInfo function_symbol_info) {
   if (check_node(node, 5, _WHILE, _LP, _Exp, _RP, _Stmt)) {
     Type cond = expression(node->children[2], 0);
     if (!is_basic_type(cond, _INT)) {
-      // action("ignore like `while (1.0) {...}`");
+      // info("ignore like `while (1.0) {...}`");
       semantic_error(7, node->children[2]->lineno);
     }
     statement(node->children[4], function_symbol_info);
@@ -1093,16 +1093,16 @@ static void external_definition(struct Ast *node) {
     if (symbol_info->kind == VariableInfo) {
       if (symbol_info->info.type == NULL) {
         // ignore like `struct A;`
-        action("ignore like `struct A;`\n");
+        info("ignore like `struct A;`\n");
         return;
       } else {
         if (symbol_info->info.type->kind == BASIC) {
           // ignore like `int;`
-          action("ignore like `int;`\n");
+          info("ignore like `int;`\n");
           return;
         } else if (symbol_info->info.type->kind == STRUCTURE) {
           // ignore like `struct {...};`
-          action("ignore like `struct {...};`\n");
+          info("ignore like `struct {...};`\n");
           return;
         }
       }
