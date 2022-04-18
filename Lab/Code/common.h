@@ -219,12 +219,14 @@ struct TypeItem {
     // 结构体类型信息是一个链表
     FieldList structure;
   } u;
+  size_t width;
 };
 
 struct FieldListItem {
   char name[64];  // 域的名字
   Type type;      // 域的类型
   FieldList tail; // 下一个域
+  size_t offset;
 };
 
 /* semantic symbol definition */

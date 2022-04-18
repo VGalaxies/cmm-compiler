@@ -42,7 +42,7 @@ static void print_structure_type(FieldList field) {
   if (field == NULL) {
     return;
   }
-  info(" .%s\n", field->name);
+  info(" .%s : offset -> %zu\n", field->name, field->offset);
   print_type(field->type);
   print_structure_type(field->tail);
 }
@@ -60,11 +60,11 @@ static void print_type(Type type) {
     }
     break;
   case ARRAY:
-    info("[%zu]", type->u.array.size);
+    info("[%zu : width -> %zu]", type->u.array.size, type->width);
     print_type(type->u.array.elem);
     break;
   case STRUCTURE:
-    info("(structure)\n");
+    info("(structure : width -> %zu)\n", type->width);
     print_structure_type(type->u.structure);
     info("(end structure)\n");
     break;
@@ -130,6 +130,7 @@ static void build_naked_type() {
     Type type = (Type)mm->log_malloc(sizeof(struct TypeItem));
     type->kind = BASIC;
     type->u.basic = _INT;
+    type->width = 4; // init
     int_type->info.type = type;
   }
 
@@ -142,6 +143,7 @@ static void build_naked_type() {
     Type type = (Type)mm->log_malloc(sizeof(struct TypeItem));
     type->kind = BASIC;
     type->u.basic = _FLOAT;
+    type->width = 4; // init
     float_type->info.type = type;
   }
 }
@@ -432,6 +434,7 @@ static SymbolInfo struct_specifier(struct Ast *node) {
         (Type)mm->log_malloc(sizeof(struct TypeItem)); // alloc space;
     struct_symbol_info->info.type->u.structure = NULL;
     struct_symbol_info->info.type->kind = STRUCTURE;
+    struct_symbol_info->info.type->width = 0; // init
     definition_list(node->children[3], struct_symbol_info);
 
     return struct_symbol_info;
@@ -511,6 +514,7 @@ static void variable_declaration(struct Ast *node, Type type,
         type->kind = ARRAY;
         type->u.array.elem = tail_type;
         type->u.array.size = dimensions[i];
+        type->width = tail_type->width * dimensions[i];
         tail_type = type;
       }
 
@@ -526,15 +530,35 @@ static void variable_declaration(struct Ast *node, Type type,
       if (filled_symbol_info) {
         if (filled_symbol_info->kind != FunctionInfo) {
           assert(filled_symbol_info->info.type);
+
           FieldList field =
               (FieldList)mm->log_malloc(sizeof(struct FieldListItem));
           strcpy(field->name,
                  parser->get_attribute(curr_node->attr_index)._string);
+
           Type struct_type = (Type)mm->log_malloc(sizeof(struct TypeItem));
           memcpy(struct_type, tail_type, sizeof(struct TypeItem));
-          field->type = struct_type;
-          field->tail = filled_symbol_info->info.type->u.structure;
-          filled_symbol_info->info.type->u.structure = field;
+
+          FieldList curr = filled_symbol_info->info.type->u.structure;
+          if (!curr) { // first field
+            filled_symbol_info->info.type->u.structure = field;
+
+            field->type = struct_type;
+            field->tail = NULL;
+            field->offset = 0;
+          } else {
+            size_t offset = curr->type->width;
+            while (curr->tail) {
+              offset += curr->tail->type->width;
+              curr = curr->tail;
+            }
+
+            curr->tail = field;
+            field->type = struct_type;
+            field->tail = NULL;
+            field->offset = offset;
+          }
+          filled_symbol_info->info.type->width += struct_type->width;
         } else {
           size_t index = filled_symbol_info->info.function.argument_count;
           filled_symbol_info->info.function.arguments[index] =
