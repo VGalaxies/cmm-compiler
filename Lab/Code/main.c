@@ -60,13 +60,14 @@ int main(int argc, char *argv[]) {
         }
         ir->ir_generate(f);
         ir->ir_generate(stdout);
+        assert(!fclose(f));
       }
     }
   }
 
   mm->clear_malloc();
   parser->lex_destroy();
-  fclose(f);
+  assert(!fclose(f));
 
   exit(EXIT_SUCCESS);
 }

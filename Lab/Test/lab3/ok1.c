@@ -3,16 +3,12 @@ struct A {
   int y;
 };
 
-int add(int temp[2][2]) {
-  return temp[0][0] + temp[1][1];
-}
+int foo(struct A a, int b) { return a.x + b; }
 
 int main() {
-  int a[2][2];
-  struct A z[2];
-  z[1].y = read();
-  a[1][1] = read();
-  write(z[1].y);
-  write(a[1][1]);
+  struct A n;
+  int m = read();
+  n.x = read();
+  write(foo(n, m));
   return 0;
 }
