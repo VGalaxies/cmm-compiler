@@ -263,7 +263,7 @@ struct OperandItem {
   enum {
     OP_ADDRESS,
     OP_ADDRESS_ORI,
-    OP_ADDRESS_FIN,
+    OP_ADDRESS_DEREF,
     OP_ADDRESS_PARAM,
     OP_VARIABLE,
     OP_CONSTANT,

@@ -15,11 +15,11 @@ extern int ir_errors;
 /* program entry */
 
 static void print_usage(int argc, char *argv[]) {
-  fprintf(stderr, "Usage: %s [FILE]\n", argv[0]);
+  fprintf(stderr, "Usage: %s [INPUT FILE] [OUTPUT FILE]\n", argv[0]);
 }
 
 int main(int argc, char *argv[]) {
-  if (argc <= 1) {
+  if (argc <= 2) {
     print_usage(argc, argv);
     exit(EXIT_FAILURE);
   }
@@ -53,8 +53,11 @@ int main(int argc, char *argv[]) {
       ir->ir_translate(root);
 
       if (!ir_errors) {
-        FILE *f = fopen("/home/vgalaxy/Desktop/shared/demo.ir", "w");
-        assert(f);
+        FILE *f = fopen(argv[2], "w");
+        if (!f) {
+          perror(argv[2]);
+          exit(EXIT_FAILURE);
+        }
         ir->ir_generate(f);
         ir->ir_generate(stdout);
       }

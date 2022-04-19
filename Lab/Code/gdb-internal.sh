@@ -1,4 +1,4 @@
 file ./parser
 set print pretty on
-b ir.c:589
-r ../Test/lab3/ok1.c
+b get_hint_index
+r ../Test/lab3/test1.c
