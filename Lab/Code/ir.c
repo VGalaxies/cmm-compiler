@@ -391,7 +391,9 @@ static void translate_args(struct Ast *node, SymbolInfo func) {
     args_op[i] = translate_exp(exp_node, store_place(NULL, "tmp"));
 
     int kind = args_op[i]->kind;
-    assert(kind != OP_LABEL);
+    assert(kind == OP_ADDRESS || kind == OP_ADDRESS_DEREF ||
+           kind == OP_ADDRESS_ORI || kind == OP_CONSTANT ||
+           kind == OP_VARIABLE);
 
     if (args_op[i]->type->kind == ARRAY) {
       printf("IR Error: Code contains array type arguments.\n");
@@ -476,7 +478,7 @@ static void translate_cond(struct Ast *node, Operand label_true,
 }
 
 static Operand translate_exp(struct Ast *node,
-                             size_t placeno) { // return op for args...
+                             size_t placeno) { // return op for args, cond and exp
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Exp);
 
@@ -691,13 +693,13 @@ static Operand translate_exp(struct Ast *node,
     construct_binop_ir(IR_ADD, result, op1, op2);
 
     if (result->type->kind == BASIC) {
-      Operand result_fixed =
+      Operand result_fix =
           (Operand)mm->log_malloc(sizeof(struct OperandItem));
-      result_fixed->kind = OP_ADDRESS_DEREF;
-      result_fixed->u.placeno = result->u.placeno;
-      result_fixed->type = int_type;
+      result_fix->kind = OP_ADDRESS_DEREF;
+      result_fix->u.placeno = result->u.placeno;
+      result_fix->type = int_type;
 
-      return result_fixed;
+      return result_fix;
     }
 
     return result;
@@ -740,13 +742,13 @@ static Operand translate_exp(struct Ast *node,
     construct_binop_ir(IR_ADD, result, op1, op2);
 
     if (result->type->kind == BASIC) {
-      Operand result_fixed =
+      Operand result_fix =
           (Operand)mm->log_malloc(sizeof(struct OperandItem));
-      result_fixed->kind = OP_ADDRESS_DEREF;
-      result_fixed->u.placeno = result->u.placeno;
-      result_fixed->type = int_type;
+      result_fix->kind = OP_ADDRESS_DEREF;
+      result_fix->u.placeno = result->u.placeno;
+      result_fix->type = int_type;
 
-      return result_fixed;
+      return result_fix;
     }
 
     return result;
@@ -876,7 +878,8 @@ static void translate_dec(struct Ast *node) {
       left->kind = OP_VARIABLE;
       left->u.placeno = var_no;
 
-      Operand right = translate_exp(node->children[2], store_place(NULL, "tmp"));
+      Operand right =
+          translate_exp(node->children[2], store_place(NULL, "tmp"));
       construct_assign_ir(IR_ASSIGN, left, right);
     }
     return;
