@@ -1,13 +1,14 @@
 TEST=$(find $1 -regex ".*\.\(c\|cmm\)" | sort)
-TESTARR=(${TEST})
+TEST_ARR=(${TEST})
+IR_PATH="/home/vgalaxy/Desktop/shared/demo.ir"
 
 make clean
 make parser
 
-for i in "${!TESTARR[@]}"
+for i in "${!TEST_ARR[@]}"
 do
-  echo -e "\e[1;35m./parser ${TESTARR[i]}\e[0m"
-  bat ${TESTARR[i]}
-  ./parser ${TESTARR[i]}
+  echo -e "\e[1;35m./parser ${TEST_ARR[i]}\e[0m"
+  bat ${TEST_ARR[i]}
+  ./parser ${TEST_ARR[i]} ${IR_PATH}
   echo -e "\n"
 done

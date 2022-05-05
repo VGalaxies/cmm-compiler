@@ -50,27 +50,27 @@ static void print_structure_type(FieldList field) {
 static void print_type(Type type) {
   assert(type);
   switch (type->kind) {
-  case BASIC:
-    if (type->u.basic == _INT) {
-      info("(int)\n");
-    } else if (type->u.basic == _FLOAT) {
-      info("(float)\n");
-    } else {
+    case BASIC:
+      if (type->u.basic == _INT) {
+        info("(int)\n");
+      } else if (type->u.basic == _FLOAT) {
+        info("(float)\n");
+      } else {
+        assert(0);
+      }
+      break;
+    case ARRAY:
+      info("[%zu : width -> %zu]", type->u.array.size, type->width);
+      print_type(type->u.array.elem);
+      break;
+    case STRUCTURE:
+      info("(structure : width -> %zu)\n", type->width);
+      print_structure_type(type->u.structure);
+      info("(end structure)\n");
+      break;
+    default:
       assert(0);
-    }
-    break;
-  case ARRAY:
-    info("[%zu : width -> %zu]", type->u.array.size, type->width);
-    print_type(type->u.array.elem);
-    break;
-  case STRUCTURE:
-    info("(structure : width -> %zu)\n", type->width);
-    print_structure_type(type->u.structure);
-    info("(end structure)\n");
-    break;
-  default:
-    assert(0);
-    break;
+      break;
   }
 }
 
@@ -82,26 +82,26 @@ static void print_symbol_info(SymbolInfo symbol_info) {
   }
 
   switch (symbol_info->kind) {
-  case TypeDef:
-    info("[TypeDef]\n");
-    print_type(symbol_info->info.type);
-    break;
-  case VariableInfo:
-    info("[VariableInfo]\n");
-    print_type(symbol_info->info.type);
-    break;
-  case FunctionInfo:
-    info("[FunctionInfo]\n");
-    info("{return type}\n");
-    print_type(symbol_info->info.function.return_type);
-    info("{arguments}\n");
-    for (size_t i = 0; i < symbol_info->info.function.argument_count; ++i) {
-      print_symbol_info(symbol_info->info.function.arguments[i]);
-    }
-    break;
-  default:
-    assert(0);
-    break;
+    case TypeDef:
+      info("[TypeDef]\n");
+      print_type(symbol_info->info.type);
+      break;
+    case VariableInfo:
+      info("[VariableInfo]\n");
+      print_type(symbol_info->info.type);
+      break;
+    case FunctionInfo:
+      info("[FunctionInfo]\n");
+      info("{return type}\n");
+      print_type(symbol_info->info.function.return_type);
+      info("{arguments}\n");
+      for (size_t i = 0; i < symbol_info->info.function.argument_count; ++i) {
+        print_symbol_info(symbol_info->info.function.arguments[i]);
+      }
+      break;
+    default:
+      assert(0);
+      break;
   }
 }
 
@@ -124,26 +124,26 @@ static void build_naked_type() {
   // build int
   {
     int_type = (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
-    int_type->kind = VariableInfo; // assume
-    strcpy(int_type->name, "");    // useless
+    int_type->kind = VariableInfo;  // assume
+    strcpy(int_type->name, "");     // useless
 
     Type type = (Type)mm->log_malloc(sizeof(struct TypeItem));
     type->kind = BASIC;
     type->u.basic = _INT;
-    type->width = 4; // init
+    type->width = 4;  // init
     int_type->info.type = type;
   }
 
   // build float
   {
     float_type = (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
-    float_type->kind = VariableInfo; // assume
-    strcpy(float_type->name, "");    // useless
+    float_type->kind = VariableInfo;  // assume
+    strcpy(float_type->name, "");     // useless
 
     Type type = (Type)mm->log_malloc(sizeof(struct TypeItem));
     type->kind = BASIC;
     type->u.basic = _FLOAT;
-    type->width = 4; // init
+    type->width = 4;  // init
     float_type->info.type = type;
   }
 }
@@ -344,7 +344,7 @@ static void definition(struct Ast *node, SymbolInfo struct_symbol_info) {
       return;
     }
 
-    if (symbol_info->kind == TypeDef) { // like `struct A {...} a;`
+    if (symbol_info->kind == TypeDef) {  // like `struct A {...} a;`
       assert(symbol_info->info.type);
       assert(symbol_info->info.type->kind == STRUCTURE);
       if (find_symbol_table(-1, symbol_info->name) != NULL) {
@@ -402,13 +402,13 @@ static SymbolInfo struct_specifier(struct Ast *node) {
   if (check_node(node, 2, _STRUCT, _Tag)) {
     SymbolInfo symbol_info =
         (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
-    symbol_info->kind = VariableInfo; // assume
+    symbol_info->kind = VariableInfo;  // assume
     strcpy(symbol_info->name,
            /* Tag -> ID */
            parser->get_attribute(node->children[1]->children[0]->attr_index)
                ._string);
 
-    symbol_info->info.type = NULL; // scan the table to find info
+    symbol_info->info.type = NULL;  // scan the table to find info
     return symbol_info;
   }
 
@@ -417,9 +417,9 @@ static SymbolInfo struct_specifier(struct Ast *node) {
     SymbolInfo struct_symbol_info =
         (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
 
-    if (node->children[1]->type == _EMPTY) { // anonymous structure
+    if (node->children[1]->type == _EMPTY) {  // anonymous structure
       struct_symbol_info->kind = VariableInfo;
-      strcpy(struct_symbol_info->name, ""); // useless
+      strcpy(struct_symbol_info->name, "");  // useless
     } else if (node->children[1]->type == _OptTag) {
       struct_symbol_info->kind = TypeDef;
       strcpy(struct_symbol_info->name,
@@ -431,10 +431,10 @@ static SymbolInfo struct_specifier(struct Ast *node) {
     }
 
     struct_symbol_info->info.type =
-        (Type)mm->log_malloc(sizeof(struct TypeItem)); // alloc space;
+        (Type)mm->log_malloc(sizeof(struct TypeItem));  // alloc space;
     struct_symbol_info->info.type->u.structure = NULL;
     struct_symbol_info->info.type->kind = STRUCTURE;
-    struct_symbol_info->info.type->width = 0; // init
+    struct_symbol_info->info.type->width = 0;  // init
     definition_list(node->children[3], struct_symbol_info);
 
     return struct_symbol_info;
@@ -480,7 +480,7 @@ static void variable_declaration(struct Ast *node, Type type,
   while (curr_dimension < MAX_BRACKET) {
     if (curr_node->children_count == 4) {
       /* VarDec -> VarDec LB INT RB */
-      assert(curr_node->children[2]->type == _INT); // subscripts are integers
+      assert(curr_node->children[2]->type == _INT);  // subscripts are integers
       dimensions[curr_dimension] =
           parser->get_attribute(curr_node->children[2]->attr_index)._int;
       curr_node = curr_node->children[0];
@@ -540,7 +540,7 @@ static void variable_declaration(struct Ast *node, Type type,
           memcpy(struct_type, tail_type, sizeof(struct TypeItem));
 
           FieldList curr = filled_symbol_info->info.type->u.structure;
-          if (!curr) { // first field
+          if (!curr) {  // first field
             filled_symbol_info->info.type->u.structure = field;
 
             field->type = struct_type;
@@ -933,41 +933,41 @@ static Type expression(struct Ast *node, int required_lval) {
     Type lhs = expression(node->children[0], 0);
     Type rhs = expression(node->children[2], 0);
     switch (node->children[1]->type) {
-    case _AND:
-    case _OR:
-      if (!is_basic_type(lhs, _INT) || !is_basic_type(rhs, _INT)) {
-        // mismatch operator and operand
-        semantic_error(7, node->children[1]->lineno);
-        return NULL;
-      }
-      // assume
-      return lhs;
-      break;
-    case _RELOP:
-    case _PLUS:
-    case _MINUS:
-    case _STAR:
-    case _DIV:
-      if ((is_basic_type(lhs, _INT) && is_basic_type(rhs, _INT)) ||
-          (is_basic_type(lhs, _FLOAT) && is_basic_type(rhs, _FLOAT))) {
+      case _AND:
+      case _OR:
+        if (!is_basic_type(lhs, _INT) || !is_basic_type(rhs, _INT)) {
+          // mismatch operator and operand
+          semantic_error(7, node->children[1]->lineno);
+          return NULL;
+        }
         // assume
         return lhs;
-      } else {
-        // mismatch operator and operand
-        semantic_error(7, node->children[1]->lineno);
-        return NULL;
-      }
-      break;
-    case _ASSIGNOP:
-      lhs = expression(node->children[0], 1); // required lval
-      if (!check_type(lhs, rhs)) {
-        // mismatch type
-        semantic_error(5, node->children[1]->lineno);
-      }
-      return lhs;
-      break;
-    default:
-      break;
+        break;
+      case _RELOP:
+      case _PLUS:
+      case _MINUS:
+      case _STAR:
+      case _DIV:
+        if ((is_basic_type(lhs, _INT) && is_basic_type(rhs, _INT)) ||
+            (is_basic_type(lhs, _FLOAT) && is_basic_type(rhs, _FLOAT))) {
+          // serve bool as int
+          return (node->children[1]->type == _RELOP) ? int_type->info.type : lhs;
+        } else {
+          // mismatch operator and operand
+          semantic_error(7, node->children[1]->lineno);
+          return NULL;
+        }
+        break;
+      case _ASSIGNOP:
+        lhs = expression(node->children[0], 1);  // required lval
+        if (!check_type(lhs, rhs)) {
+          // mismatch type
+          semantic_error(5, node->children[1]->lineno);
+        }
+        return lhs;
+        break;
+      default:
+        break;
     }
   }
 
@@ -1069,7 +1069,7 @@ static void compound_statement(struct Ast *node,
   /* CompSt -> LC DefList StmtList RC */
   assert(node->children_count == 4);
   if (node->children[1]->type != _EMPTY) {
-    definition_list(node->children[1], NULL); // no structure info
+    definition_list(node->children[1], NULL);  // no structure info
   }
 
   if (node->children[2]->type != _EMPTY) {
@@ -1086,7 +1086,7 @@ static void construct_insert_function_compst(struct Ast *node,
       (SymbolInfo)mm->log_malloc(sizeof(struct SymbolInfoItem));
   function_symbol_info->kind = FunctionInfo;
   strcpy(function_symbol_info->name,
-         ""); // filled when in function declaration
+         "");  // filled when in function declaration
 
   function_symbol_info->info.function.return_type =
       (Type)mm->log_malloc(sizeof(struct TypeItem));
@@ -1155,7 +1155,7 @@ static void external_definition(struct Ast *node) {
     SymbolInfo symbol_info = specifier(node->children[0]);
     assert(symbol_info);
     if (symbol_info->kind == VariableInfo) {
-      if (symbol_info->info.type == NULL) { // like `struct A a;`
+      if (symbol_info->info.type == NULL) {  // like `struct A a;`
         SymbolInfo found_symbol_info =
             find_symbol_table(TypeDef, symbol_info->name);
         if (found_symbol_info == NULL) {
@@ -1167,11 +1167,11 @@ static void external_definition(struct Ast *node) {
                                     found_symbol_info->info.type);
           return;
         }
-      } else { // like `int a;` or `struct {...} a;`
+      } else {  // like `int a;` or `struct {...} a;`
         external_declaration_list(node->children[1], symbol_info->info.type);
         return;
       }
-    } else if (symbol_info->kind == TypeDef) { // like `struct A {...} a;`
+    } else if (symbol_info->kind == TypeDef) {  // like `struct A {...} a;`
       assert(symbol_info->info.type);
       assert(symbol_info->info.type->kind == STRUCTURE);
       if (find_symbol_table(-1, symbol_info->name) != NULL) {
@@ -1195,7 +1195,7 @@ static void external_definition(struct Ast *node) {
   if (check_node(node, 3, _Specifier, _FunDec, _CompSt)) {
     SymbolInfo symbol_info = specifier(node->children[0]);
     assert(symbol_info);
-    if (symbol_info->kind == TypeDef) { // like `struct A {...} a;`
+    if (symbol_info->kind == TypeDef) {  // like `struct A {...} a;`
       assert(symbol_info->info.type);
       assert(symbol_info->info.type->kind == STRUCTURE);
       if (find_symbol_table(-1, symbol_info->name) != NULL) {
@@ -1214,7 +1214,7 @@ static void external_definition(struct Ast *node) {
         return;
       }
     } else if (symbol_info->kind == VariableInfo) {
-      if (symbol_info->info.type == NULL) { // like `struct A a;`
+      if (symbol_info->info.type == NULL) {  // like `struct A a;`
         SymbolInfo found_symbol_info =
             find_symbol_table(TypeDef, symbol_info->name);
         if (found_symbol_info == NULL) {
@@ -1225,7 +1225,7 @@ static void external_definition(struct Ast *node) {
           construct_insert_function_compst(node, found_symbol_info->info.type);
           return;
         }
-      } else { // like `int a;` or `struct {...} a;`
+      } else {  // like `int a;` or `struct {...} a;`
         construct_insert_function_compst(node, symbol_info->info.type);
         return;
       }

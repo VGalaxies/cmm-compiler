@@ -126,7 +126,7 @@ static size_t load_placeno(const char *name, const char *hint) {
 
   size_t index = get_hint_index(hint);
   assert(index != -1);
-  assert(index >= 2); // avoid tmp or label
+  assert(index >= 2);  // avoid tmp or label
   assert(name);
 
   sprintf(name_fix, "%s%s", hint_to_prefix[index].prefix, name);
@@ -155,11 +155,11 @@ static InterCodes ir_ed;
 static void init_ir() {
   ir_st = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
   ir_st->prev = (InterCodes)mm->log_malloc(sizeof(struct InterCodesItem));
-  ir_st->prev->lineno = 0; // for increasing lineno
+  ir_st->prev->lineno = 0;  // for increasing lineno
   ir_st->next = NULL;
 
   ir_ed = ir_st;
-  ir_ed->lineno = -1; // mark ir ed
+  ir_ed->lineno = -1;  // mark ir ed
 }
 
 static void extend_ir() {
@@ -229,34 +229,34 @@ static void construct_dec_ir(int kind, Operand var, Operand size) {
 
 static const char *interp_op(Operand op) {
   switch (op->kind) {
-  case OP_CONSTANT: {
-    char *res = (char *)mm->log_malloc(16 * sizeof(char));
-    memset(res, 0, 16 * sizeof(char));
-    sprintf(res, "#%d", op->u.value);
-    return res;
-  }
-  case OP_FUNC:
-  case OP_LABEL:
-  case OP_ADDRESS:
-  case OP_VARIABLE: {
-    return placemap[op->u.placeno];
-  }
-  case OP_ADDRESS_ORI: {
-    char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
-    memset(res, 0, (LENGTH + 1) * sizeof(char));
-    sprintf(res, "&%s", placemap[op->u.placeno]);
-    return res;
-  }
-  case OP_ADDRESS_DEREF: {
-    char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
-    memset(res, 0, (LENGTH + 1) * sizeof(char));
-    sprintf(res, "*%s", placemap[op->u.placeno]);
-    return res;
-  }
-  default:
-    printf("IR Error: Broken invariant.\n");
-    longjmp(buf, 1);
-    break;
+    case OP_CONSTANT: {
+      char *res = (char *)mm->log_malloc(16 * sizeof(char));
+      memset(res, 0, 16 * sizeof(char));
+      sprintf(res, "#%d", op->u.value);
+      return res;
+    }
+    case OP_FUNC:
+    case OP_LABEL:
+    case OP_ADDRESS:
+    case OP_VARIABLE: {
+      return placemap[op->u.placeno];
+    }
+    case OP_ADDRESS_ORI: {
+      char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
+      memset(res, 0, (LENGTH + 1) * sizeof(char));
+      sprintf(res, "&%s", placemap[op->u.placeno]);
+      return res;
+    }
+    case OP_ADDRESS_DEREF: {
+      char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
+      memset(res, 0, (LENGTH + 1) * sizeof(char));
+      sprintf(res, "*%s", placemap[op->u.placeno]);
+      return res;
+    }
+    default:
+      printf("IR Error: Broken invariant.\n");
+      longjmp(buf, 1);
+      break;
   }
 
   return NULL;
@@ -267,28 +267,28 @@ static const char *interp_relop(int type) {
   memset(res, 0, 4 * sizeof(char));
 
   switch (type) {
-  case _LT:
-    sprintf(res, "<");
-    break;
-  case _LE:
-    sprintf(res, "<=");
-    break;
-  case _EQ:
-    sprintf(res, "==");
-    break;
-  case _NE:
-    sprintf(res, "!=");
-    break;
-  case _GT:
-    sprintf(res, ">");
-    break;
-  case _GE:
-    sprintf(res, ">=");
-    break;
-  default:
-    printf("IR Error: Broken invariant.\n");
-    longjmp(buf, 1);
-    break;
+    case _LT:
+      sprintf(res, "<");
+      break;
+    case _LE:
+      sprintf(res, "<=");
+      break;
+    case _EQ:
+      sprintf(res, "==");
+      break;
+    case _NE:
+      sprintf(res, "!=");
+      break;
+    case _GT:
+      sprintf(res, ">");
+      break;
+    case _GE:
+      sprintf(res, ">=");
+      break;
+    default:
+      printf("IR Error: Broken invariant.\n");
+      longjmp(buf, 1);
+      break;
   }
 
   return res;
@@ -296,69 +296,69 @@ static const char *interp_relop(int type) {
 
 static void ir_generate_step(FILE *f, struct InterCode ir) {
   switch (ir.kind) {
-  case IR_ASSIGN:
-    fprintf(f, "%s := %s\n", interp_op(ir.u.assign.left),
-            interp_op(ir.u.assign.right));
-    break;
-  case IR_ASSIGN_CALL:
-    fprintf(f, "%s := CALL %s\n", interp_op(ir.u.assign.left),
-            interp_op(ir.u.assign.right));
-    break;
-  case IR_LABEL:
-    fprintf(f, "LABEL %s :\n", interp_op(ir.u.single.op));
-    break;
-  case IR_FUNCTION:
-    fprintf(f, "FUNCTION %s :\n", interp_op(ir.u.single.op));
-    break;
-  case IR_GOTO:
-    fprintf(f, "GOTO %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_RETURN:
-    fprintf(f, "RETURN %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_ARG:
-    fprintf(f, "ARG %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_PARAM:
-    fprintf(f, "PARAM %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_READ:
-    fprintf(f, "READ %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_WRITE:
-    fprintf(f, "WRITE %s\n", interp_op(ir.u.single.op));
-    break;
-  case IR_ADD:
-    fprintf(f, "%s := %s + %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_SUB:
-    fprintf(f, "%s := %s - %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_MUL:
-    fprintf(f, "%s := %s * %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_DIV:
-    fprintf(f, "%s := %s / %s\n", interp_op(ir.u.binop.result),
-            interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
-    break;
-  case IR_RELOP:
-    fprintf(f, "IF %s %s %s GOTO %s\n", interp_op(ir.u.relop.x),
-            interp_relop(ir.u.relop.type), interp_op(ir.u.relop.y),
-            interp_op(ir.u.relop.z));
-    break;
-  case IR_DEC:
-    assert(ir.u.dec.var->kind == OP_ADDRESS_ORI);
-    assert(ir.u.dec.size->kind == OP_CONSTANT);
-    fprintf(f, "DEC %s %u\n", placemap[ir.u.dec.var->u.placeno],
-            ir.u.dec.size->u.value);
-    break;
-  default:
-    printf("IR Error: Broken invariant.\n");
-    longjmp(buf, 1);
-    break;
+    case IR_ASSIGN:
+      fprintf(f, "%s := %s\n", interp_op(ir.u.assign.left),
+              interp_op(ir.u.assign.right));
+      break;
+    case IR_ASSIGN_CALL:
+      fprintf(f, "%s := CALL %s\n", interp_op(ir.u.assign.left),
+              interp_op(ir.u.assign.right));
+      break;
+    case IR_LABEL:
+      fprintf(f, "LABEL %s :\n", interp_op(ir.u.single.op));
+      break;
+    case IR_FUNCTION:
+      fprintf(f, "FUNCTION %s :\n", interp_op(ir.u.single.op));
+      break;
+    case IR_GOTO:
+      fprintf(f, "GOTO %s\n", interp_op(ir.u.single.op));
+      break;
+    case IR_RETURN:
+      fprintf(f, "RETURN %s\n", interp_op(ir.u.single.op));
+      break;
+    case IR_ARG:
+      fprintf(f, "ARG %s\n", interp_op(ir.u.single.op));
+      break;
+    case IR_PARAM:
+      fprintf(f, "PARAM %s\n", interp_op(ir.u.single.op));
+      break;
+    case IR_READ:
+      fprintf(f, "READ %s\n", interp_op(ir.u.single.op));
+      break;
+    case IR_WRITE:
+      fprintf(f, "WRITE %s\n", interp_op(ir.u.single.op));
+      break;
+    case IR_ADD:
+      fprintf(f, "%s := %s + %s\n", interp_op(ir.u.binop.result),
+              interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
+      break;
+    case IR_SUB:
+      fprintf(f, "%s := %s - %s\n", interp_op(ir.u.binop.result),
+              interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
+      break;
+    case IR_MUL:
+      fprintf(f, "%s := %s * %s\n", interp_op(ir.u.binop.result),
+              interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
+      break;
+    case IR_DIV:
+      fprintf(f, "%s := %s / %s\n", interp_op(ir.u.binop.result),
+              interp_op(ir.u.binop.op1), interp_op(ir.u.binop.op2));
+      break;
+    case IR_RELOP:
+      fprintf(f, "IF %s %s %s GOTO %s\n", interp_op(ir.u.relop.x),
+              interp_relop(ir.u.relop.type), interp_op(ir.u.relop.y),
+              interp_op(ir.u.relop.z));
+      break;
+    case IR_DEC:
+      assert(ir.u.dec.var->kind == OP_ADDRESS_ORI);
+      assert(ir.u.dec.size->kind == OP_CONSTANT);
+      fprintf(f, "DEC %s %u\n", placemap[ir.u.dec.var->u.placeno],
+              ir.u.dec.size->u.value);
+      break;
+    default:
+      printf("IR Error: Broken invariant.\n");
+      longjmp(buf, 1);
+      break;
   }
 
   fflush(f);
@@ -367,7 +367,7 @@ static void ir_generate_step(FILE *f, struct InterCode ir) {
 static void ir_generate(FILE *f) {
   InterCodes curr = ir_st;
   while (curr) {
-    if (curr->lineno == -1) { // ir end
+    if (curr->lineno == -1) {  // ir end
       break;
     }
     ir_generate_step(f, curr->code);
@@ -377,7 +377,18 @@ static void ir_generate(FILE *f) {
 
 /* translate functions */
 
+static Operand guard = (Operand)1; // TODO -> bad practice
 static Operand translate_exp(struct Ast *node, size_t placeno);
+static Operand translate_exp_chk(struct Ast *node, size_t placeno) {
+  Operand res = translate_exp(node, placeno);
+  if (res == guard) {
+      printf("IR Error: Code serves bool as int.\n");
+      longjmp(buf, 1);
+      return NULL;
+  }
+  return res;
+}
+
 static void translate_args(struct Ast *node, SymbolInfo func) {
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Args);
@@ -388,7 +399,7 @@ static void translate_args(struct Ast *node, SymbolInfo func) {
   struct Ast *curr_node = node;
   for (size_t i = 0; i < func->info.function.argument_count; ++i) {
     struct Ast *exp_node = curr_node->children[0];
-    args_op[i] = translate_exp(exp_node, store_place(NULL, "tmp"));
+    args_op[i] = translate_exp_chk(exp_node, store_place(NULL, "tmp"));
 
     int kind = args_op[i]->kind;
     assert(kind == OP_ADDRESS || kind == OP_ADDRESS_DEREF ||
@@ -427,8 +438,8 @@ static void translate_cond(struct Ast *node, Operand label_true,
     size_t x_no = store_place(NULL, "tmp");
     size_t y_no = store_place(NULL, "tmp");
 
-    Operand x = translate_exp(node->children[0], x_no);
-    Operand y = translate_exp(node->children[2], y_no);
+    Operand x = translate_exp_chk(node->children[0], x_no);
+    Operand y = translate_exp_chk(node->children[2], y_no);
     Operand z = label_true;
 
     int type = parser->get_attribute(node->children[1]->attr_index)._attr;
@@ -465,7 +476,7 @@ static void translate_cond(struct Ast *node, Operand label_true,
   }
 
   // serve int as bool
-  Operand x = translate_exp(node, store_place(NULL, "tmp"));
+  Operand x = translate_exp_chk(node, store_place(NULL, "tmp"));
   Operand y = (Operand)mm->log_malloc(sizeof(struct OperandItem));
   y->kind = OP_CONSTANT;
   y->u.value = 0;
@@ -477,8 +488,9 @@ static void translate_cond(struct Ast *node, Operand label_true,
   return;
 }
 
-static Operand translate_exp(struct Ast *node,
-                             size_t placeno) { // return op for args, cond and exp
+static Operand translate_exp(
+    struct Ast *node,
+    size_t placeno) {  // return op for args, cond and exp
   action("hit %s\n", unit_names[node->type]);
   assert(node->type == _Exp);
 
@@ -487,8 +499,8 @@ static Operand translate_exp(struct Ast *node,
     size_t left_no = store_place(NULL, "tmp");
     size_t right_no = store_place(NULL, "tmp");
 
-    Operand left = translate_exp(node->children[0], left_no);
-    Operand right = translate_exp(node->children[2], right_no);
+    Operand left = translate_exp_chk(node->children[0], left_no);
+    Operand right = translate_exp_chk(node->children[2], right_no);
 
     construct_assign_ir(IR_ASSIGN, left, right);
 
@@ -639,12 +651,12 @@ static Operand translate_exp(struct Ast *node,
 
   // ()
   if (check_node(node, 3, _LP, _Exp, _RP)) {
-    return translate_exp(node->children[1], placeno);
+    return translate_exp_chk(node->children[1], placeno);
   }
 
   // unary minus
   if (check_node(node, 2, _MINUS, _Exp)) {
-    Operand op2 = translate_exp(node->children[1], store_place(NULL, "tmp"));
+    Operand op2 = translate_exp_chk(node->children[1], store_place(NULL, "tmp"));
 
     Operand op1 = (Operand)mm->log_malloc(sizeof(struct OperandItem));
     op1->kind = OP_CONSTANT;
@@ -664,8 +676,8 @@ static Operand translate_exp(struct Ast *node,
     size_t left_no = store_place(NULL, "tmp");
     size_t right_no = store_place(NULL, "tmp");
 
-    Operand left_op = translate_exp(node->children[0], left_no);
-    Operand right_op = translate_exp(node->children[2], right_no);
+    Operand left_op = translate_exp_chk(node->children[0], left_no);
+    Operand right_op = translate_exp_chk(node->children[2], right_no);
 
     assert(left_op->kind == OP_ADDRESS || left_op->kind == OP_ADDRESS_ORI);
     assert(right_op->kind == OP_VARIABLE || right_op->kind == OP_CONSTANT);
@@ -693,8 +705,7 @@ static Operand translate_exp(struct Ast *node,
     construct_binop_ir(IR_ADD, result, op1, op2);
 
     if (result->type->kind == BASIC) {
-      Operand result_fix =
-          (Operand)mm->log_malloc(sizeof(struct OperandItem));
+      Operand result_fix = (Operand)mm->log_malloc(sizeof(struct OperandItem));
       result_fix->kind = OP_ADDRESS_DEREF;
       result_fix->u.placeno = result->u.placeno;
       result_fix->type = int_type;
@@ -709,7 +720,7 @@ static Operand translate_exp(struct Ast *node,
   if (check_node(node, 3, _Exp, _DOT, _ID)) {
     size_t struct_no = store_place(NULL, "tmp");
 
-    Operand struct_op = translate_exp(node->children[0], struct_no);
+    Operand struct_op = translate_exp_chk(node->children[0], struct_no);
     assert(struct_op->kind == OP_ADDRESS || struct_op->kind == OP_ADDRESS_ORI);
 
     Type struct_type = struct_op->type;
@@ -742,8 +753,7 @@ static Operand translate_exp(struct Ast *node,
     construct_binop_ir(IR_ADD, result, op1, op2);
 
     if (result->type->kind == BASIC) {
-      Operand result_fix =
-          (Operand)mm->log_malloc(sizeof(struct OperandItem));
+      Operand result_fix = (Operand)mm->log_malloc(sizeof(struct OperandItem));
       result_fix->kind = OP_ADDRESS_DEREF;
       result_fix->u.placeno = result->u.placeno;
       result_fix->type = int_type;
@@ -806,7 +816,7 @@ static Operand translate_exp(struct Ast *node,
     { construct_single_ir(IR_LABEL, label_false); }
 
     // avoid serve bool as int
-    return NULL;
+    return guard;
   }
 
   // arithmetic exp
@@ -817,8 +827,8 @@ static Operand translate_exp(struct Ast *node,
     size_t op1_no = store_place(NULL, "tmp");
     size_t op2_no = store_place(NULL, "tmp");
 
-    Operand op1 = translate_exp(node->children[0], op1_no);
-    Operand op2 = translate_exp(node->children[2], op2_no);
+    Operand op1 = translate_exp_chk(node->children[0], op1_no);
+    Operand op2 = translate_exp_chk(node->children[2], op2_no);
 
     Operand result = (Operand)mm->log_malloc(sizeof(struct OperandItem));
     result->kind = OP_VARIABLE;
@@ -827,22 +837,22 @@ static Operand translate_exp(struct Ast *node,
 
     int kind = 0;
     switch (node->children[1]->type) {
-    case _PLUS:
-      kind = IR_ADD;
-      break;
-    case _MINUS:
-      kind = IR_SUB;
-      break;
-    case _STAR:
-      kind = IR_MUL;
-      break;
-    case _DIV:
-      kind = IR_DIV;
-      break;
-    default:
-      printf("IR Error: Broken invariant.\n");
-      longjmp(buf, 1);
-      break;
+      case _PLUS:
+        kind = IR_ADD;
+        break;
+      case _MINUS:
+        kind = IR_SUB;
+        break;
+      case _STAR:
+        kind = IR_MUL;
+        break;
+      case _DIV:
+        kind = IR_DIV;
+        break;
+      default:
+        printf("IR Error: Broken invariant.\n");
+        longjmp(buf, 1);
+        break;
     }
 
     construct_binop_ir(kind, result, op1, op2);
@@ -879,7 +889,7 @@ static void translate_dec(struct Ast *node) {
       left->u.placeno = var_no;
 
       Operand right =
-          translate_exp(node->children[2], store_place(NULL, "tmp"));
+          translate_exp_chk(node->children[2], store_place(NULL, "tmp"));
       construct_assign_ir(IR_ASSIGN, left, right);
     }
     return;
@@ -956,7 +966,7 @@ static void translate_stmt(struct Ast *node) {
 
   if (check_node(node, 2, _Exp, _SEMI)) {
     // expect `Exp -> Exp ASSIGNOP Exp`
-    translate_exp(node->children[0], -1);
+    translate_exp_chk(node->children[0], -1);
     return;
   }
 
@@ -966,7 +976,7 @@ static void translate_stmt(struct Ast *node) {
   }
 
   if (check_node(node, 3, _RETURN, _Exp, _SEMI)) {
-    Operand op = translate_exp(node->children[1], store_place(NULL, "tmp"));
+    Operand op = translate_exp_chk(node->children[1], store_place(NULL, "tmp"));
     construct_single_ir(IR_RETURN, op);
     return;
   }

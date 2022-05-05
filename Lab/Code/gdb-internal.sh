@@ -1,4 +1,3 @@
 file ./parser
-set print pretty on
-b get_hint_index
-r ../Test/lab3/test1.c
+b ir.c:400
+r ../Test/lab3/test1.c /home/vgalaxy/Desktop/shared/demo.ir

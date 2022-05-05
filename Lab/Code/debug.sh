@@ -1,1 +1,1 @@
-gdb -x ./gdb-internal.sh
+gdb -q -x ./gdb-internal.sh

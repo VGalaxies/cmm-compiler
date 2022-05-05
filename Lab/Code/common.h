@@ -21,10 +21,10 @@
 /* debug info */
 
 #define print(format, ...) printf(format "\n", ##__VA_ARGS__)
-#define panic(format, ...)                                                     \
-  do {                                                                         \
-    printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__);                      \
-    exit(EXIT_FAILURE);                                                        \
+#define panic(format, ...)                                \
+  do {                                                    \
+    printf("\33[1;31m" format "\33[0m\n", ##__VA_ARGS__); \
+    exit(EXIT_FAILURE);                                   \
   } while (0)
 
 #ifdef LEXICAL_DEBUG
@@ -60,7 +60,7 @@
 
 enum {
   // terminal
-  _LT, // 0
+  _LT,  // 0
   _LE,
   _EQ,
   _NE,
@@ -70,7 +70,7 @@ enum {
   _ASSIGNOP,
   _SEMI,
   _COMMA,
-  _DOT, // 10
+  _DOT,  // 10
   _LP,
   _RP,
   _LB,
@@ -80,7 +80,7 @@ enum {
   _PLUS,
   _MINUS,
   _STAR,
-  _DIV, // 20
+  _DIV,  // 20
   _AND,
   _OR,
   _NOT,
@@ -90,7 +90,7 @@ enum {
   _ID,
   _IF,
   _ELSE,
-  _WHILE, // 30
+  _WHILE,  // 30
   _STRUCT,
   _RETURN,
 
@@ -102,7 +102,7 @@ enum {
   _Specifier,
   _StructSpecifier,
   _OptTag,
-  _Tag, // 40
+  _Tag,  // 40
   _VarDec,
   _FunDec,
   _VarList,
@@ -112,7 +112,7 @@ enum {
   _Stmt,
   _DefList,
   _Def,
-  _DecList, // 50
+  _DecList,  // 50
   _Dec,
   _Exp,
   _Args,
@@ -121,60 +121,60 @@ enum {
   _EMPTY,
 };
 
-#define UNIT_KEYS(_)                                                           \
-  _(LT)                                                                        \
-  _(LE)                                                                        \
-  _(EQ)                                                                        \
-  _(NE)                                                                        \
-  _(GT)                                                                        \
-  _(GE)                                                                        \
-  _(RELOP)                                                                     \
-  _(ASSIGNOP)                                                                  \
-  _(SEMI)                                                                      \
-  _(COMMA)                                                                     \
-  _(DOT)                                                                       \
-  _(LP)                                                                        \
-  _(RP)                                                                        \
-  _(LB)                                                                        \
-  _(RB)                                                                        \
-  _(LC)                                                                        \
-  _(RC)                                                                        \
-  _(PLUS)                                                                      \
-  _(MINUS)                                                                     \
-  _(STAR)                                                                      \
-  _(DIV)                                                                       \
-  _(AND)                                                                       \
-  _(OR)                                                                        \
-  _(NOT)                                                                       \
-  _(TYPE)                                                                      \
-  _(INT)                                                                       \
-  _(FLOAT)                                                                     \
-  _(ID)                                                                        \
-  _(IF)                                                                        \
-  _(ELSE)                                                                      \
-  _(WHILE)                                                                     \
-  _(STRUCT)                                                                    \
-  _(RETURN)                                                                    \
-  _(Program)                                                                   \
-  _(ExtDefList)                                                                \
-  _(ExtDef)                                                                    \
-  _(ExtDecList)                                                                \
-  _(Specifier)                                                                 \
-  _(StructSpecifier)                                                           \
-  _(OptTag)                                                                    \
-  _(Tag)                                                                       \
-  _(VarDec)                                                                    \
-  _(FunDec)                                                                    \
-  _(VarList)                                                                   \
-  _(ParamDec)                                                                  \
-  _(CompSt)                                                                    \
-  _(StmtList)                                                                  \
-  _(Stmt)                                                                      \
-  _(DefList)                                                                   \
-  _(Def)                                                                       \
-  _(DecList)                                                                   \
-  _(Dec)                                                                       \
-  _(Exp)                                                                       \
+#define UNIT_KEYS(_) \
+  _(LT)              \
+  _(LE)              \
+  _(EQ)              \
+  _(NE)              \
+  _(GT)              \
+  _(GE)              \
+  _(RELOP)           \
+  _(ASSIGNOP)        \
+  _(SEMI)            \
+  _(COMMA)           \
+  _(DOT)             \
+  _(LP)              \
+  _(RP)              \
+  _(LB)              \
+  _(RB)              \
+  _(LC)              \
+  _(RC)              \
+  _(PLUS)            \
+  _(MINUS)           \
+  _(STAR)            \
+  _(DIV)             \
+  _(AND)             \
+  _(OR)              \
+  _(NOT)             \
+  _(TYPE)            \
+  _(INT)             \
+  _(FLOAT)           \
+  _(ID)              \
+  _(IF)              \
+  _(ELSE)            \
+  _(WHILE)           \
+  _(STRUCT)          \
+  _(RETURN)          \
+  _(Program)         \
+  _(ExtDefList)      \
+  _(ExtDef)          \
+  _(ExtDecList)      \
+  _(Specifier)       \
+  _(StructSpecifier) \
+  _(OptTag)          \
+  _(Tag)             \
+  _(VarDec)          \
+  _(FunDec)          \
+  _(VarList)         \
+  _(ParamDec)        \
+  _(CompSt)          \
+  _(StmtList)        \
+  _(Stmt)            \
+  _(DefList)         \
+  _(Def)             \
+  _(DecList)         \
+  _(Dec)             \
+  _(Exp)             \
   _(Args)
 
 #define UNIT_NAME(name) [_##name] = #name,
@@ -196,10 +196,10 @@ struct Ast {
 #define MAX_ATTR 1024
 #define LENGTH 64
 union Attribute {
-  int _attr;        // for TYPE or RELOP
-  unsigned _int;    // for INT
-  float _float;     // for FLOAT
-  char _string[LENGTH]; // for ID
+  int _attr;             // for TYPE or RELOP
+  unsigned _int;         // for INT
+  float _float;          // for FLOAT
+  char _string[LENGTH];  // for ID
 };
 
 /* semantic type system definition */
@@ -225,8 +225,8 @@ struct TypeItem {
 
 struct FieldListItem {
   char name[LENGTH];  // 域的名字
-  Type type;      // 域的类型
-  FieldList tail; // 下一个域
+  Type type;          // 域的类型
+  FieldList tail;     // 下一个域
   size_t offset;
 };
 
@@ -267,11 +267,11 @@ struct OperandItem {
     OP_ADDRESS_DEREF,
     OP_VARIABLE,
     OP_CONSTANT,
-    OP_LABEL, // for label
+    OP_LABEL,  // for label
   } kind;
   union {
     size_t placeno;
-    unsigned value; // for constant, note unsigned
+    unsigned value;  // for constant, note unsigned
   } u;
   Type type;
 };
