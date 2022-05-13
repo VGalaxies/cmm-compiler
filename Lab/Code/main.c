@@ -24,50 +24,70 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  FILE *f = fopen(argv[1], "r");
-  if (!f) {
+  FILE *in = fopen(argv[1], "r");
+  if (!in) {
     perror(argv[1]);
     exit(EXIT_FAILURE);
   }
 
-  parser->restart(f);
+  parser->restart(in);
 
   /* #ifdef SYNTAX_DEBUG
    *   yydebug = 1;
    * #endif */
 
   parser->parse();
+  parser->lex_destroy();
+  assert(!fclose(in));
 
-  if (!syntax_errors && !lexical_errors) {
-#ifdef SYNTAX_DEBUG
-    parser->print_ast_tree();
-#endif
-
-    struct Ast *root = parser->get_ast_root();
-    analyzer->semantic_analysis(root);
-
-    if (!semantic_errors) {
-#ifdef SEMANTIC_DEBUG
-      analyzer->print_symbol_table();
-#endif
-      ir->ir_translate(root);
-
-      if (!ir_errors) {
-        FILE *f = fopen(argv[2], "w");
-        if (!f) {
-          perror(argv[2]);
-          exit(EXIT_FAILURE);
-        }
-        ir->ir_generate(f);
-        ir->ir_generate(stdout);
-        assert(!fclose(f));
-      }
-    }
+  if (lexical_errors || syntax_errors) {
+    goto FINAL;
   }
 
-  mm->clear_malloc();
-  parser->lex_destroy();
-  assert(!fclose(f));
+#ifdef SYNTAX_DEBUG
+  parser->print_ast_tree();
+#endif
 
+  struct Ast *root = parser->get_ast_root();
+  analyzer->semantic_analysis(root);
+
+  if (semantic_errors) {
+    goto FINAL;
+  }
+
+#ifdef SEMANTIC_DEBUG
+  analyzer->print_symbol_table();
+#endif
+
+  ir->ir_translate(root);
+
+  if (ir_errors) {
+    goto FINAL;
+  }
+
+  // FILE *ir_out = fopen(argv[2], "w");
+  // if (!ir_out) {
+  //   perror(argv[2]);
+  //   mm->clear_malloc(); // note
+  //   exit(EXIT_FAILURE);
+  // }
+  // ir->ir_generate(ir_out);
+  // assert(!fclose(ir_out));
+#ifdef IR_DEBUG
+  ir->ir_generate(stdout);
+#endif
+
+  // FILE *out = fopen(argv[2], "w");
+  // if (!out) {
+  //   perror(argv[2]);
+  //   mm->clear_malloc(); // note
+  //   exit(EXIT_FAILURE);
+  // }
+  // code->generate(out);
+  // assert(!fclose(out));
+  // code->generate(stdout);
+
+FINAL:
+  mm->clear_malloc();
   exit(EXIT_SUCCESS);
 }

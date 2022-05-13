@@ -36,6 +36,12 @@ MODULE(mm) {
 MODULE(ir) {
   void (*ir_translate)(struct Ast *);
   void (*ir_generate)(FILE *);
+  InterCodes (*get_ir_st)();
+  const char *(*get_place)(size_t);
+};
+
+MODULE(code) {
+  void (*generate)(FILE *);
 };
 
 #endif

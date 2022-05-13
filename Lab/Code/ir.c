@@ -502,6 +502,12 @@ static Operand translate_exp(
     Operand left = translate_exp_chk(node->children[0], left_no);
     Operand right = translate_exp_chk(node->children[2], right_no);
 
+    assert(left->type && right->type);
+    if (left->type->kind != BASIC && right->type->kind != BASIC) {
+      printf("IR Error: Code contains direct assignment between compound variables.\n");
+      longjmp(buf, 1);
+    }
+
     construct_assign_ir(IR_ASSIGN, left, right);
 
     // placeno unused
@@ -1256,9 +1262,19 @@ static void translate(struct Ast *root) {
   }
 }
 
+static InterCodes get_ir_st() {
+  return ir_st;
+}
+
+static const char *get_place(size_t index) {
+  return placemap[index];
+}
+
 /* interface */
 
 MODULE_DEF(ir) = {
     .ir_translate = translate,
     .ir_generate = ir_generate,
+    .get_ir_st = get_ir_st,
+    .get_place = get_place,
 };

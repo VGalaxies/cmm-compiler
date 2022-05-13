@@ -1,3 +1,3 @@
 file ./parser
-b ir.c:400
+b main.c:61
 r ../Test/lab3/test1.c /home/vgalaxy/Desktop/shared/demo.ir
