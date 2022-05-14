@@ -45,11 +45,11 @@ static size_t get_func_info_index(size_t func_no) {
   return -1;
 }
 
-static size_t get_curr_func_no() {
+static struct FunctionDescriptor *get_curr_func() {
   if (curr_func_info_index == 0) {
     assert(0);
   }
-  return curr_func_info_index - 1;
+  return &func_infos[curr_func_info_index - 1];
 }
 
 // var descriptor
@@ -92,7 +92,8 @@ static void reset() {
 }
 
 static int is_var_in_reg(size_t var_no) {
-  assert(var_no != 0);             // note that var no zero is func no
+  assert(var_no != REG_FREE);
+
   for (int i = 16; i < 24; ++i) {  // $s0 ~ $s7
     if (reg_state[i] == var_no) {
       return i;
@@ -140,7 +141,7 @@ static int alloc_reg() {
   return victim;
 }
 
-static int ensure_imm_in_reg() {
+static int get_tmp_reg() {
   int reg_id = alloc_reg();
   assert(reg_state[reg_id] == REG_FREE);  // still free
   return reg_id;
@@ -163,13 +164,13 @@ static int ensure_var_in_reg(size_t var_no) {
     // load from stack
     gen_code_indent("lw %s, -%d($fp)", reg_name[reg_id],
                     var_infos[var_info_index].pos.offset_fp);
-  } else {
+  } else {  // first occur
     var_infos[curr_var_info_index].type = REG;
     var_infos[curr_var_info_index].pos.reg_id = reg_id;
 
     var_infos[curr_var_info_index].var_no = var_no;
     var_infos[curr_var_info_index].var_name = ir->get_place(var_no);
-    var_infos[curr_var_info_index].func_no = get_curr_func_no();
+    var_infos[curr_var_info_index].func_no = get_curr_func()->func_no;
 
     curr_var_info_index++;
   }
@@ -180,16 +181,17 @@ static int ensure_var_in_reg(size_t var_no) {
 // generate functions
 
 static void generate_assign(struct InterCode code) {
-  assert(code.kind == IR_ASSIGN);
   Operand right = code.u.assign.right;
   Operand left = code.u.assign.left;
 
+  // a = 1
   if (left->kind == OP_VARIABLE && right->kind == OP_CONSTANT) {
     int left_reg_id = ensure_var_in_reg(left->u.placeno);
     gen_code_indent("li %s, %u", reg_name[left_reg_id], right->u.value);
     return;
   }
 
+  // a = b
   if (left->kind == OP_VARIABLE && right->kind == OP_VARIABLE) {
     int left_reg_id = ensure_var_in_reg(left->u.placeno);
     int right_reg_id = ensure_var_in_reg(right->u.placeno);
@@ -198,6 +200,7 @@ static void generate_assign(struct InterCode code) {
     return;
   }
 
+  // x = arr[1]
   if (left->kind == OP_VARIABLE && right->kind == OP_ADDRESS_DEREF) {
     int left_reg_id = ensure_var_in_reg(left->u.placeno);
     int right_reg_id = ensure_var_in_reg(right->u.placeno);
@@ -206,10 +209,21 @@ static void generate_assign(struct InterCode code) {
     return;
   }
 
+  // arr[1] = x
   if (left->kind == OP_ADDRESS_DEREF && right->kind == OP_VARIABLE) {
     int left_reg_id = ensure_var_in_reg(left->u.placeno);
     int right_reg_id = ensure_var_in_reg(right->u.placeno);
     gen_code_indent("sw %s, 0(%s)", reg_name[right_reg_id],
+                    reg_name[left_reg_id]);
+    return;
+  }
+
+  // arr[1] = 1
+  if (left->kind == OP_ADDRESS_DEREF && right->kind == OP_CONSTANT) {
+    int left_reg_id = ensure_var_in_reg(left->u.placeno);
+    int tmp_reg_id = get_tmp_reg();
+    gen_code_indent("li %s, %u", reg_name[tmp_reg_id], right->u.value);
+    gen_code_indent("sw %s, 0(%s)", reg_name[tmp_reg_id],
                     reg_name[left_reg_id]);
     return;
   }
@@ -223,27 +237,65 @@ static void generate_binop(struct InterCode code) {
   Operand op1 = code.u.binop.op1;
   Operand op2 = code.u.binop.op2;
 
+  // a = 1 + 1
+  if (op1->kind == OP_CONSTANT && op2->kind == OP_CONSTANT) {
+    if (result->kind == OP_VARIABLE) {
+      int result_reg_id = ensure_var_in_reg(result->u.placeno);
+      unsigned res;
+      switch (code.kind) {
+        case IR_ADD:
+          res = op1->u.value + op2->u.value;
+          break;
+        case IR_SUB:
+          res = op1->u.value - op2->u.value;
+          break;
+        case IR_MUL:
+          res = op1->u.value * op2->u.value;
+          break;
+        case IR_DIV:
+          res = op1->u.value / op2->u.value;
+          break;
+        default:
+          assert(0);
+      }
+      gen_code_indent("li %s, %u", reg_name[result_reg_id], res);
+      return;
+    }
+  }
+
+  // array
   if (result->kind == OP_ADDRESS &&
-      (op1->kind == OP_ADDRESS_DEREF || op1->kind == OP_ADDRESS)) {
+      (op1->kind == OP_ADDRESS_ORI || op1->kind == OP_ADDRESS)) {
     assert(code.kind == IR_ADD);  // assumed
     if (op2->kind == OP_CONSTANT) {
+      assert(0);  // assumed
+
       int result_reg_id = ensure_var_in_reg(result->u.placeno);
-      int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
-      gen_code_indent("addi %s, %s, %u", reg_name[result_reg_id],
-                      reg_name[op1_reg_id], op2->u.value);
+
+      size_t addr_no = get_var_info_index(op1->u.placeno);
+      assert(addr_no != -1 && var_infos[addr_no].type == STACK);
+
+      gen_code_indent("addi %s, $fp, -%u", reg_name[result_reg_id],
+                      var_infos[addr_no].pos.offset_fp - op2->u.value);
       return;
     }
 
     if (op2->kind == OP_VARIABLE) {
       int result_reg_id = ensure_var_in_reg(result->u.placeno);
-      int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
       int op2_reg_id = ensure_var_in_reg(op2->u.placeno);
+
+      size_t addr_no = get_var_info_index(op1->u.placeno);
+      assert(addr_no != -1 && var_infos[addr_no].type == STACK);
+
+      gen_code_indent("addi %s, $fp, -%u", reg_name[result_reg_id],
+                      var_infos[addr_no].pos.offset_fp);
       gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
-                      reg_name[op1_reg_id], reg_name[op2_reg_id]);
+                      reg_name[result_reg_id], reg_name[op2_reg_id]);
       return;
     }
   }
 
+  // a = b + 1 or a = b + c
   if (result->kind == OP_VARIABLE && op1->kind == OP_VARIABLE) {
     if (op2->kind == OP_CONSTANT) {
       if (code.kind == IR_ADD || code.kind == IR_SUB) {
@@ -259,7 +311,7 @@ static void generate_binop(struct InterCode code) {
       } else if (code.kind == IR_MUL || code.kind == IR_DIV) {
         int result_reg_id = ensure_var_in_reg(result->u.placeno);
         int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
-        int op2_reg_id = ensure_imm_in_reg();
+        int op2_reg_id = get_tmp_reg();
         gen_code_indent("li %s, %u", reg_name[op2_reg_id], op2->u.value);
         if (code.kind == IR_MUL) {
           gen_code_indent("mul %s, %s, %s", reg_name[result_reg_id],
@@ -277,19 +329,27 @@ static void generate_binop(struct InterCode code) {
       int result_reg_id = ensure_var_in_reg(result->u.placeno);
       int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
       int op2_reg_id = ensure_var_in_reg(op2->u.placeno);
-      if (code.kind == IR_ADD) {
-        gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
-                        reg_name[op1_reg_id], reg_name[op2_reg_id]);
-      } else if (code.kind == IR_SUB) {
-        gen_code_indent("sub %s, %s, %s", reg_name[result_reg_id],
-                        reg_name[op1_reg_id], reg_name[op2_reg_id]);
-      } else if (code.kind == IR_MUL) {
-        gen_code_indent("mul %s, %s, %s", reg_name[result_reg_id],
-                        reg_name[op1_reg_id], reg_name[op2_reg_id]);
-      } else {
-        gen_code_indent("div %s, %s", reg_name[op1_reg_id],
-                        reg_name[op2_reg_id]);
-        gen_code_indent("mflo %s", reg_name[result_reg_id]);
+
+      switch (code.kind) {
+        case IR_ADD:
+          gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
+                          reg_name[op1_reg_id], reg_name[op2_reg_id]);
+          break;
+        case IR_SUB:
+          gen_code_indent("sub %s, %s, %s", reg_name[result_reg_id],
+                          reg_name[op1_reg_id], reg_name[op2_reg_id]);
+          break;
+        case IR_MUL:
+          gen_code_indent("mul %s, %s, %s", reg_name[result_reg_id],
+                          reg_name[op1_reg_id], reg_name[op2_reg_id]);
+          break;
+        case IR_DIV:
+          gen_code_indent("div %s, %s", reg_name[op1_reg_id],
+                          reg_name[op2_reg_id]);
+          gen_code_indent("mflo %s", reg_name[result_reg_id]);
+          break;
+        default:
+          assert(0);
       }
       return;
     }
@@ -334,8 +394,6 @@ static void generate_callee_epilogue() {
 }
 
 static void generate_func(struct InterCode code) {
-  assert(code.kind == IR_FUNCTION);
-
   size_t func_no = code.u.single.op->u.placeno;
   const char *func_name = ir->get_place(func_no);
   gen_code("%s:", func_name);
@@ -350,8 +408,6 @@ static void generate_func(struct InterCode code) {
 }
 
 static void generate_return(struct InterCode code) {
-  assert(code.kind == IR_RETURN);
-
   Operand op = code.u.single.op;
   if (op->kind == OP_VARIABLE) {
     int reg_id = ensure_var_in_reg(op->u.placeno);
@@ -371,8 +427,6 @@ END:
 }
 
 static void generate_read(struct InterCode code) {
-  assert(code.kind == IR_READ);
-
   Operand op = code.u.single.op;
   if (op->kind == OP_VARIABLE) {
     int reg_id = ensure_var_in_reg(op->u.placeno);
@@ -385,8 +439,6 @@ static void generate_read(struct InterCode code) {
 }
 
 static void generate_write(struct InterCode code) {
-  assert(code.kind == IR_WRITE);
-
   Operand op = code.u.single.op;
   if (op->kind == OP_VARIABLE) {
     int reg_id = ensure_var_in_reg(op->u.placeno);
@@ -401,7 +453,31 @@ static void generate_write(struct InterCode code) {
     return;
   }
 
+  if (op->kind == OP_ADDRESS_DEREF) {
+    int reg_id = ensure_var_in_reg(op->u.placeno);
+    gen_code_indent("lw $a0, 0(%s)", reg_name[reg_id]);
+    gen_code_indent("jal write");
+    return;
+  }
+
   assert(0);
+}
+
+static void generate_dec(struct InterCode code) {
+  Operand var = code.u.dec.var;
+  Operand size = code.u.dec.size;
+
+  var_infos[curr_var_info_index].type = STACK;
+  var_infos[curr_var_info_index].var_no = var->u.placeno;
+  var_infos[curr_var_info_index].var_name = ir->get_place(var->u.placeno);
+  var_infos[curr_var_info_index].func_no = get_curr_func()->func_no;
+
+  gen_code_indent("subu $sp, $sp, %u", size->u.value);
+  get_curr_func()->curr_offset_fp += size->u.value;
+  var_infos[curr_var_info_index].pos.offset_fp =
+      get_curr_func()->curr_offset_fp;
+
+  curr_var_info_index++;
 }
 
 static void code_generate_step() {
@@ -464,8 +540,10 @@ static void code_generate_step() {
     case IR_DEC:
       assert(code.u.dec.var->kind == OP_ADDRESS_ORI);
       assert(code.u.dec.size->kind == OP_CONSTANT);
-
+      generate_dec(code);
+      curr = curr->next;
       break;
+
     default:
       assert(0);
       break;
