@@ -1,3 +1,3 @@
 file ./parser
-b code.c:308
-r ../Test/lab4/test1.c /home/vgalaxy/Desktop/shared/out.s
+b code.c:get_var_reg
+r ../Test/lab4/arr.c /home/vgalaxy/Desktop/shared/out.s

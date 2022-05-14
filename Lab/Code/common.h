@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 /* debug control */
 
@@ -336,7 +335,7 @@ static const char *reg_name[32] = {
     "$s6",   "$s7", "$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra",
 };
 
-enum { REG_NONE = 0, REG_IN_USE, REG_FREE };
+enum { REG_FREE = 0, REG_IN_USE };
 
 struct RegisterDescriptor {
   int state;

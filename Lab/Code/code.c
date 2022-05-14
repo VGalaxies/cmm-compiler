@@ -61,79 +61,71 @@ static void reset() {
   memset(reg_infos, 0, sizeof(reg_infos));
 }
 
-static int is_var_in_reg(size_t var_no) {
-  for (int i = 16; i < 24; ++i) {  // $s0 ~ $s7
-    if (reg_infos[i].state != REG_NONE && reg_infos[i].var_no == var_no) {
-      return i;
-    }
-  }
-  return -1;  // not in reg
-}
-
 static int alloc_reg() {
   for (int i = 16; i < 24; ++i) {
-    if (reg_infos[i].state == REG_NONE) {
+    if (reg_infos[i].state == REG_FREE) {
       return i;
     }
   }
 
-  int l = 16, r = 24, victim;
-  while (1) {
-    victim = rand() % (r - l) + l;
-    assert(l <= victim && victim < r);
-    if (reg_infos[victim].state == REG_FREE) {
-      break;
-    }
+  assert(0);
+}
+
+// static void free_addr_reg(int reg_id) {
+//   if (reg_id == -1) {
+//     return;
+//   }
+//   assert(reg_infos[reg_id].state == REG_IN_USE);
+//   reg_infos[reg_id].state = REG_FREE;
+
+//   assert(reg_infos[reg_id].var_no != -1);
+//   reg_infos[reg_id].var_no = -1;  // reset
+// }
+
+static void free_var_reg(int reg_id) {
+  if (reg_id == -1) {
+    return;
   }
 
-  size_t var_info_index = get_var_info_index(reg_infos[victim].var_no);
-  assert(var_info_index != -1);
+  assert(reg_infos[reg_id].state == REG_IN_USE);
+  reg_infos[reg_id].state = REG_FREE;
 
-  struct VariableDescriptor var_info = var_infos[var_info_index];
-  assert(var_info.type == REG && var_info.pos.reg_id == victim);
+  if (reg_infos[reg_id].var_no != -1) {
+    size_t var_info_index = get_var_info_index(reg_infos[reg_id].var_no);
+    assert(var_info_index != -1 && var_infos[var_info_index].type == REG &&
+           var_infos[var_info_index].pos.reg_id == reg_id &&
+           var_infos[var_info_index].pos.offset_fp >= 8 + 4);
 
-  size_t func_info_index = get_func_info_index(var_info.func_no);
-  assert(func_info_index != -1);
+    gen_code_indent("sw %s, -%d($fp)", reg_name[reg_id],
+                    var_infos[var_info_index].pos.offset_fp);
 
-  if (var_info.pos.offset_fp == 0) {                  // first spill
-    func_infos[func_info_index].curr_offset_fp += 4;  // assume 4 bytes
-    var_infos[var_info_index].pos.offset_fp =
-        func_infos[func_info_index].curr_offset_fp;
-
-    gen_code_indent("subu $sp, $sp, 4");
+    var_infos[var_info_index].type = STACK;
+    var_infos[var_info_index].pos.reg_id = 0;  // reset
   }
 
-  gen_code_indent("sw %s, -%d($fp)", reg_name[var_info.pos.reg_id],
-                  var_infos[var_info_index].pos.offset_fp);
-  var_infos[var_info_index].type = STACK;
-  var_infos[var_info_index].pos.reg_id = 0;  // reset
-
-  reg_infos[victim].var_no = 0;  // reset
-  return victim;
+  reg_infos[reg_id].var_no = -1;  // reset
 }
 
 static int get_tmp_reg() {
   int reg_id = alloc_reg();
   reg_infos[reg_id].state = REG_IN_USE;  // now in use
+  reg_infos[reg_id].var_no = -1;         // no var
   return reg_id;
 }
 
-static int ensure_var_in_reg(size_t var_no) {
-  int reg_id = is_var_in_reg(var_no);
-  if (reg_id != -1) {
-    return reg_id;
-  }
-
-  reg_id = alloc_reg();
+static int get_var_reg(size_t var_no) {
+  int reg_id = alloc_reg();
   reg_infos[reg_id].state = REG_IN_USE;  // now in use
   reg_infos[reg_id].var_no = var_no;
 
   size_t var_info_index = get_var_info_index(var_no);
   if (var_info_index != -1) {
+    assert(var_infos[var_info_index].type == STACK &&
+           var_infos[var_info_index].pos.reg_id == 0 &&
+           var_infos[var_info_index].pos.offset_fp >= 8 + 4);
+
     var_infos[var_info_index].type = REG;
     var_infos[var_info_index].pos.reg_id = reg_id;
-
-    assert(var_infos[var_info_index].pos.offset_fp >= 44);
 
     // load from stack
     gen_code_indent("lw %s, -%d($fp)", reg_name[reg_id],
@@ -146,6 +138,15 @@ static int ensure_var_in_reg(size_t var_no) {
     var_infos[curr_var_info_index].var_name = ir->get_place(var_no);
     var_infos[curr_var_info_index].func_no = get_curr_func()->func_no;
 
+    size_t func_info_index = get_func_info_index(get_curr_func()->func_no);
+    assert(func_info_index != -1);
+
+    // set offset
+    func_infos[func_info_index].curr_offset_fp += 4;  // assume 4 bytes
+    var_infos[curr_var_info_index].pos.offset_fp =
+        func_infos[func_info_index].curr_offset_fp;
+    gen_code_indent("subu $sp, $sp, 4");
+
     curr_var_info_index++;
   }
 
@@ -155,60 +156,74 @@ static int ensure_var_in_reg(size_t var_no) {
 // generate functions
 
 static void generate_assign(struct InterCode code) {
-  Operand right = code.u.assign.right;
   Operand left = code.u.assign.left;
+  Operand right = code.u.assign.right;
 
   // a = 1
   if (left->kind == OP_VARIABLE && right->kind == OP_CONSTANT) {
-    int left_reg_id = ensure_var_in_reg(left->u.placeno);
+    int left_reg_id = get_var_reg(left->u.placeno);
     gen_code_indent("li %s, %u", reg_name[left_reg_id], right->u.value);
-    reg_infos[left_reg_id].state = REG_FREE;
+    free_var_reg(left_reg_id);
     return;
   }
 
   // a = b
   if (left->kind == OP_VARIABLE && right->kind == OP_VARIABLE) {
-    int left_reg_id = ensure_var_in_reg(left->u.placeno);
-    int right_reg_id = ensure_var_in_reg(right->u.placeno);
+    int left_reg_id = get_var_reg(left->u.placeno);
+    int right_reg_id = get_var_reg(right->u.placeno);
     gen_code_indent("move %s, %s", reg_name[left_reg_id],
                     reg_name[right_reg_id]);
-    reg_infos[left_reg_id].state = REG_FREE;
-    reg_infos[right_reg_id].state = REG_FREE;
+    free_var_reg(left_reg_id);
+    free_var_reg(right_reg_id);
     return;
   }
 
   // x = arr[1]
   if (left->kind == OP_VARIABLE && right->kind == OP_ADDRESS_DEREF) {
-    int left_reg_id = ensure_var_in_reg(left->u.placeno);
-    int right_reg_id = ensure_var_in_reg(right->u.placeno);
+    int left_reg_id = get_var_reg(left->u.placeno);
+    int right_reg_id = get_var_reg(right->u.placeno);
     gen_code_indent("lw %s, 0(%s)", reg_name[left_reg_id],
                     reg_name[right_reg_id]);
-    reg_infos[left_reg_id].state = REG_FREE;
-    reg_infos[right_reg_id].state = REG_FREE;
+    free_var_reg(left_reg_id);
+    free_var_reg(right_reg_id);
     return;
   }
 
   // arr[1] = x
   if (left->kind == OP_ADDRESS_DEREF && right->kind == OP_VARIABLE) {
-    int left_reg_id = ensure_var_in_reg(left->u.placeno);
-    int right_reg_id = ensure_var_in_reg(right->u.placeno);
+    int left_reg_id = get_var_reg(left->u.placeno);
+    int right_reg_id = get_var_reg(right->u.placeno);
     gen_code_indent("sw %s, 0(%s)", reg_name[right_reg_id],
                     reg_name[left_reg_id]);
-    reg_infos[left_reg_id].state = REG_FREE;
-    reg_infos[right_reg_id].state = REG_FREE;
+    free_var_reg(left_reg_id);
+    free_var_reg(right_reg_id);
     return;
   }
 
   // arr[1] = 1
   if (left->kind == OP_ADDRESS_DEREF && right->kind == OP_CONSTANT) {
-    int left_reg_id = ensure_var_in_reg(left->u.placeno);
+    int left_reg_id = get_var_reg(left->u.placeno);
     int tmp_reg_id = get_tmp_reg();
     gen_code_indent("li %s, %u", reg_name[tmp_reg_id], right->u.value);
     gen_code_indent("sw %s, 0(%s)", reg_name[tmp_reg_id],
                     reg_name[left_reg_id]);
-    reg_infos[left_reg_id].state = REG_FREE;
-    reg_infos[tmp_reg_id].state = REG_NONE;  // note
+    free_var_reg(left_reg_id);
+    free_var_reg(tmp_reg_id);
     return;
+  }
+
+  // arr[1] = arr[2]
+  if (left->kind == OP_ADDRESS_DEREF && right->kind == OP_ADDRESS_DEREF) {
+    int left_reg_id = get_var_reg(left->u.placeno);
+    int right_reg_id = get_var_reg(right->u.placeno);
+    int tmp_reg_id = get_tmp_reg();
+    gen_code_indent("lw %s, 0(%s)", reg_name[tmp_reg_id],
+                    reg_name[right_reg_id]);
+    gen_code_indent("sw %s, 0(%s)", reg_name[tmp_reg_id],
+                    reg_name[left_reg_id]);
+    free_var_reg(left_reg_id);
+    free_var_reg(right_reg_id);
+    free_var_reg(tmp_reg_id);
   }
 
   assert(0);
@@ -220,125 +235,118 @@ static void generate_binop(struct InterCode code) {
   Operand op1 = code.u.binop.op1;
   Operand op2 = code.u.binop.op2;
 
-  // a = 1 + 1
-  if (op1->kind == OP_CONSTANT && op2->kind == OP_CONSTANT) {
-    if (result->kind == OP_VARIABLE) {
-      int result_reg_id = ensure_var_in_reg(result->u.placeno);
-      unsigned res;
-      switch (code.kind) {
-        case IR_ADD:
-          res = op1->u.value + op2->u.value;
-          break;
-        case IR_SUB:
-          res = op1->u.value - op2->u.value;
-          break;
-        case IR_MUL:
-          res = op1->u.value * op2->u.value;
-          break;
-        case IR_DIV:
-          res = op1->u.value / op2->u.value;
-          break;
-        default:
-          assert(0);
-      }
-      gen_code_indent("li %s, %u", reg_name[result_reg_id], res);
-      reg_infos[result_reg_id].state = REG_FREE;
-      return;
-    }
-  }
-
-  // array
+  // special handling for array addresses
   if (result->kind == OP_ADDRESS &&
       (op1->kind == OP_ADDRESS_ORI || op1->kind == OP_ADDRESS)) {
     assert(code.kind == IR_ADD && op2->kind == OP_VARIABLE);  // assumed
-    if (op2->kind == OP_VARIABLE) {
-      int result_reg_id = ensure_var_in_reg(result->u.placeno);
-      int op2_reg_id = ensure_var_in_reg(op2->u.placeno);
 
-      size_t addr_no = get_var_info_index(op1->u.placeno);
-      assert(addr_no != -1 && var_infos[addr_no].type == STACK);
+    int result_reg_id = get_var_reg(result->u.placeno);
+    int op2_reg_id = get_var_reg(op2->u.placeno);
 
-      gen_code_indent("addi %s, $fp, -%u", reg_name[result_reg_id],
-                      var_infos[addr_no].pos.offset_fp);
-      gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
-                      reg_name[result_reg_id], reg_name[op2_reg_id]);
+    size_t addr_no = get_var_info_index(op1->u.placeno);
+    assert(addr_no != -1 && var_infos[addr_no].type == STACK &&
+           var_infos[addr_no].pos.reg_id == 0 &&
+           var_infos[addr_no].pos.offset_fp >= 8 + 4);
 
-      reg_infos[result_reg_id].state = REG_FREE;
-      reg_infos[op2_reg_id].state = REG_FREE;
-      return;
-    }
+    gen_code_indent("addi %s, $fp, -%u", reg_name[result_reg_id],
+                    var_infos[addr_no].pos.offset_fp);
+    gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
+                    reg_name[result_reg_id], reg_name[op2_reg_id]);
+
+    free_var_reg(result_reg_id);
+    free_var_reg(op2_reg_id);
+
+    return;
   }
 
-  // a = b + 1 or a = b + c
-  if (result->kind == OP_VARIABLE && op1->kind == OP_VARIABLE) {
-    if (op2->kind == OP_CONSTANT) {
-      if (code.kind == IR_ADD || code.kind == IR_SUB) {
-        int result_reg_id = ensure_var_in_reg(result->u.placeno);
-        int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
-        if (code.kind == IR_ADD) {
-          gen_code_indent("addi %s, %s, %u", reg_name[result_reg_id],
-                          reg_name[op1_reg_id], op2->u.value);
-        } else {
-          gen_code_indent("addi %s, %s, -%u", reg_name[result_reg_id],
-                          reg_name[op1_reg_id], op2->u.value);
-        }
-        reg_infos[result_reg_id].state = REG_FREE;
-        reg_infos[op1_reg_id].state = REG_FREE;
-      } else {
-        int result_reg_id = ensure_var_in_reg(result->u.placeno);
-        int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
-        int op2_reg_id = get_tmp_reg();
-        gen_code_indent("li %s, %u", reg_name[op2_reg_id], op2->u.value);
-        if (code.kind == IR_MUL) {
-          gen_code_indent("mul %s, %s, %s", reg_name[result_reg_id],
-                          reg_name[op1_reg_id], reg_name[op2_reg_id]);
-        } else {
-          gen_code_indent("div %s, %s", reg_name[op1_reg_id],
-                          reg_name[op2_reg_id]);
-          gen_code_indent("mflo %s", reg_name[result_reg_id]);
-        }
-        reg_infos[result_reg_id].state = REG_FREE;
-        reg_infos[op1_reg_id].state = REG_FREE;
-        reg_infos[op2_reg_id].state = REG_NONE;  // note
-      }
-      return;
-    }
+  // lval -> var / deref
+  // rval -> [var / deref / const] [op] [var / deref / const]
 
-    if (op2->kind == OP_VARIABLE) {
-      int result_reg_id = ensure_var_in_reg(result->u.placeno);
-      int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
-      int op2_reg_id = ensure_var_in_reg(op2->u.placeno);
+  int op1_reg_id = -1, op2_reg_id = -1;
+  int op1_tmp_reg_id = -1, op2_tmp_reg_id = -1;
 
-      switch (code.kind) {
-        case IR_ADD:
-          gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
-                          reg_name[op1_reg_id], reg_name[op2_reg_id]);
-          break;
-        case IR_SUB:
-          gen_code_indent("sub %s, %s, %s", reg_name[result_reg_id],
-                          reg_name[op1_reg_id], reg_name[op2_reg_id]);
-          break;
-        case IR_MUL:
-          gen_code_indent("mul %s, %s, %s", reg_name[result_reg_id],
-                          reg_name[op1_reg_id], reg_name[op2_reg_id]);
-          break;
-        case IR_DIV:
-          gen_code_indent("div %s, %s", reg_name[op1_reg_id],
-                          reg_name[op2_reg_id]);
-          gen_code_indent("mflo %s", reg_name[result_reg_id]);
-          break;
-        default:
-          assert(0);
-      }
-
-      reg_infos[result_reg_id].state = REG_FREE;
-      reg_infos[op1_reg_id].state = REG_FREE;
-      reg_infos[op2_reg_id].state = REG_FREE;
-      return;
-    }
+  switch (op1->kind) {
+    case OP_VARIABLE:
+      op1_tmp_reg_id = get_var_reg(op1->u.placeno);  // note tmp
+      break;
+    case OP_CONSTANT:
+      op1_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("li %s, %u", reg_name[op1_tmp_reg_id], op1->u.value);
+      break;
+    case OP_ADDRESS_DEREF:
+      op1_reg_id = get_var_reg(op1->u.placeno);
+      op1_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("lw %s, 0(%s)", reg_name[op1_tmp_reg_id],
+                      reg_name[op1_reg_id]);
+      break;
+    default:
+      assert(0);
   }
 
-  assert(0);
+  switch (op2->kind) {
+    case OP_VARIABLE:
+      op2_tmp_reg_id = get_var_reg(op2->u.placeno);  // note tmp
+      break;
+    case OP_CONSTANT:
+      op2_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("li %s, %u", reg_name[op2_tmp_reg_id], op2->u.value);
+      break;
+    case OP_ADDRESS_DEREF:
+      op2_reg_id = get_var_reg(op2->u.placeno);
+      op2_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("lw %s, 0(%s)", reg_name[op2_tmp_reg_id],
+                      reg_name[op2_reg_id]);
+      break;
+    default:
+      assert(0);
+  }
+
+  int result_tmp_reg_id = get_tmp_reg();
+  switch (code.kind) {
+    case IR_ADD:
+      gen_code_indent("add %s, %s, %s", reg_name[result_tmp_reg_id],
+                      reg_name[op1_tmp_reg_id], reg_name[op2_tmp_reg_id]);
+      break;
+    case IR_SUB:
+      gen_code_indent("sub %s, %s, %s", reg_name[result_tmp_reg_id],
+                      reg_name[op1_tmp_reg_id], reg_name[op2_tmp_reg_id]);
+      break;
+    case IR_MUL:
+      gen_code_indent("mul %s, %s, %s", reg_name[result_tmp_reg_id],
+                      reg_name[op1_tmp_reg_id], reg_name[op2_tmp_reg_id]);
+      break;
+    case IR_DIV:
+      gen_code_indent("div %s, %s", reg_name[op1_tmp_reg_id],
+                      reg_name[op2_tmp_reg_id]);
+      gen_code_indent("mflo %s", reg_name[result_tmp_reg_id]);
+      break;
+    default:
+      assert(0);
+  }
+
+  int result_reg_id = get_var_reg(result->u.placeno);
+  switch (result->kind) {
+    case OP_VARIABLE:
+      gen_code_indent("move %s, %s", reg_name[result_reg_id],
+                      reg_name[result_tmp_reg_id]);
+      break;
+    case OP_ADDRESS_DEREF:
+      gen_code_indent("sw %s, 0(%s)", reg_name[result_tmp_reg_id],
+                      reg_name[result_reg_id]);
+      break;
+    default:
+      assert(0);
+  }
+
+  // reset reg state
+  free_var_reg(op1_reg_id);
+  free_var_reg(op1_tmp_reg_id);
+  free_var_reg(op2_reg_id);
+  free_var_reg(op2_tmp_reg_id);
+  free_var_reg(result_reg_id);
+  free_var_reg(result_tmp_reg_id);
+
+  // TDDO -> assertion
   return;
 }
 
@@ -347,103 +355,96 @@ static void generate_relop(struct InterCode code) {
   Operand y = code.u.relop.y;
   Operand z = code.u.relop.z;
 
-  int x_reg_id, y_reg_id;
+  int x_reg_id = -1, y_reg_id = -1;
+  int x_tmp_reg_id = -1, y_tmp_reg_id = -1;
   const char *label = ir->get_place(z->u.placeno);
 
-  if (x->kind == OP_VARIABLE && y->kind == OP_VARIABLE) {
-    x_reg_id = ensure_var_in_reg(x->u.placeno);
-    y_reg_id = ensure_var_in_reg(y->u.placeno);
-    goto END;
+  switch (x->kind) {
+    case OP_VARIABLE:
+      x_tmp_reg_id = get_var_reg(x->u.placeno);  // note tmp
+      break;
+    case OP_CONSTANT:
+      x_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("li %s, %u", reg_name[x_tmp_reg_id], x->u.value);
+      break;
+    case OP_ADDRESS_DEREF:
+      x_reg_id = get_var_reg(x->u.placeno);
+      x_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("lw %s, 0(%s)", reg_name[x_tmp_reg_id],
+                      reg_name[x_reg_id]);
+      break;
+    default:
+      assert(0);
   }
 
-  if (x->kind == OP_VARIABLE && y->kind == OP_CONSTANT) {
-    x_reg_id = ensure_var_in_reg(x->u.placeno);
-    y_reg_id = get_tmp_reg();
-    gen_code_indent("li %s, %u", reg_name[y_reg_id], y->u.value);
-    goto END;
+  switch (y->kind) {
+    case OP_VARIABLE:
+      y_tmp_reg_id = get_var_reg(y->u.placeno);  // note tmp
+      break;
+    case OP_CONSTANT:
+      y_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("li %s, %u", reg_name[y_tmp_reg_id], y->u.value);
+      break;
+    case OP_ADDRESS_DEREF:
+      y_reg_id = get_var_reg(y->u.placeno);
+      y_tmp_reg_id = get_tmp_reg();
+      gen_code_indent("lw %s, 0(%s)", reg_name[y_tmp_reg_id],
+                      reg_name[y_reg_id]);
+      break;
+    default:
+      assert(0);
   }
 
-  if (x->kind == OP_CONSTANT && y->kind == OP_CONSTANT) {
-    x_reg_id = get_tmp_reg();
-    y_reg_id = get_tmp_reg();
-    gen_code_indent("li %s, %u", reg_name[x_reg_id], x->u.value);
-    gen_code_indent("li %s, %u", reg_name[y_reg_id], y->u.value);
-    goto END;
-  }
+  // reset reg state
+  // before cond jump
+  free_var_reg(x_reg_id);
+  free_var_reg(x_tmp_reg_id);
+  free_var_reg(y_reg_id);
+  free_var_reg(y_tmp_reg_id);
 
-  assert(0);
-
-END:
   switch (code.u.relop.type) {
     case _LT:
-      gen_code_indent("blt %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
-                      label);
+      gen_code_indent("blt %s, %s, %s", reg_name[x_tmp_reg_id],
+                      reg_name[y_tmp_reg_id], label);
       break;
     case _LE:
-      gen_code_indent("ble %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
-                      label);
+      gen_code_indent("ble %s, %s, %s", reg_name[x_tmp_reg_id],
+                      reg_name[y_tmp_reg_id], label);
       break;
     case _EQ:
-      gen_code_indent("beq %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
-                      label);
+      gen_code_indent("beq %s, %s, %s", reg_name[x_tmp_reg_id],
+                      reg_name[y_tmp_reg_id], label);
       break;
     case _NE:
-      gen_code_indent("bne %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
-                      label);
+      gen_code_indent("bne %s, %s, %s", reg_name[x_tmp_reg_id],
+                      reg_name[y_tmp_reg_id], label);
       break;
     case _GT:
-      gen_code_indent("bgt %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
-                      label);
+      gen_code_indent("bgt %s, %s, %s", reg_name[x_tmp_reg_id],
+                      reg_name[y_tmp_reg_id], label);
       break;
     case _GE:
-      gen_code_indent("bge %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
-                      label);
+      gen_code_indent("bge %s, %s, %s", reg_name[x_tmp_reg_id],
+                      reg_name[y_tmp_reg_id], label);
       break;
     default:
       assert(0);
       break;
   }
 
-  if (x->kind == OP_VARIABLE) {
-    reg_infos[x_reg_id].state = REG_FREE;
-  } else if (x->kind == OP_CONSTANT) {
-    reg_infos[x_reg_id].state = REG_NONE;
-  }
-
-  if (y->kind == OP_VARIABLE) {
-    reg_infos[y_reg_id].state = REG_FREE;
-  } else if (y->kind == OP_CONSTANT) {
-    reg_infos[y_reg_id].state = REG_NONE;
-  }
-  
+  // TDDO -> assertion
   return;
 }
 
 static void generate_callee_prologue() {
-  gen_code_indent("subu $sp, $sp, 40");
-  gen_code_indent("sw $ra, 36($sp)");
-  gen_code_indent("sw $fp, 32($sp)");
-  gen_code_indent("addi $fp, $sp, 40");
-  gen_code_indent("sw $s7, 28($sp)");
-  gen_code_indent("sw $s6, 24($sp)");
-  gen_code_indent("sw $s5, 20($sp)");
-  gen_code_indent("sw $s4, 16($sp)");
-  gen_code_indent("sw $s3, 12($sp)");
-  gen_code_indent("sw $s2, 8($sp)");
-  gen_code_indent("sw $s1, 4($sp)");
-  gen_code_indent("sw $s0, 0($sp)");
+  gen_code_indent("subu $sp, $sp, 8");
+  gen_code_indent("sw $ra, 4($sp)");
+  gen_code_indent("sw $fp, 0($sp)");
+  gen_code_indent("addi $fp, $sp, 8");
   fflush(f);
 }
 
 static void generate_callee_epilogue() {
-  gen_code_indent("lw $s0, -40($fp)");
-  gen_code_indent("lw $s1, -36($fp)");
-  gen_code_indent("lw $s2, -32($fp)");
-  gen_code_indent("lw $s3, -28($fp)");
-  gen_code_indent("lw $s4, -24($fp)");
-  gen_code_indent("lw $s5, -20($fp)");
-  gen_code_indent("lw $s6, -16($fp)");
-  gen_code_indent("lw $s7, -12($fp)");
   gen_code_indent("move $sp, $fp");
   gen_code_indent("lw $fp, -8($sp)");
   gen_code_indent("lw $ra, -4($sp)");
@@ -458,8 +459,7 @@ static void generate_func(struct InterCode code) {
 
   func_infos[curr_func_info_index].func_no = func_no;
   func_infos[curr_func_info_index].func_name = func_name;
-  func_infos[curr_func_info_index].curr_offset_fp =
-      40;  // $ra, old $fp, $s0 ~ $s7
+  func_infos[curr_func_info_index].curr_offset_fp = 8;  // $ra, old $fp
   curr_func_info_index++;
 
   generate_callee_prologue();
@@ -468,9 +468,9 @@ static void generate_func(struct InterCode code) {
 static void generate_return(struct InterCode code) {
   Operand op = code.u.single.op;
   if (op->kind == OP_VARIABLE) {
-    int reg_id = ensure_var_in_reg(op->u.placeno);
+    int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("move $v0, %s", reg_name[reg_id]);
-    reg_infos[reg_id].state = REG_FREE;
+    free_var_reg(reg_id);
     goto END;
   }
 
@@ -488,10 +488,10 @@ END:
 static void generate_read(struct InterCode code) {
   Operand op = code.u.single.op;
   if (op->kind == OP_VARIABLE) {
-    int reg_id = ensure_var_in_reg(op->u.placeno);
+    int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("jal read");
     gen_code_indent("move %s, $v0", reg_name[reg_id]);
-    reg_infos[reg_id].state = REG_FREE;
+    free_var_reg(reg_id);
     return;
   }
 
@@ -501,10 +501,10 @@ static void generate_read(struct InterCode code) {
 static void generate_write(struct InterCode code) {
   Operand op = code.u.single.op;
   if (op->kind == OP_VARIABLE) {
-    int reg_id = ensure_var_in_reg(op->u.placeno);
+    int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("move $a0, %s", reg_name[reg_id]);
     gen_code_indent("jal write");
-    reg_infos[reg_id].state = REG_FREE;
+    free_var_reg(reg_id);
     return;
   }
 
@@ -515,10 +515,10 @@ static void generate_write(struct InterCode code) {
   }
 
   if (op->kind == OP_ADDRESS_DEREF) {
-    int reg_id = ensure_var_in_reg(op->u.placeno);
+    int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("lw $a0, 0(%s)", reg_name[reg_id]);
     gen_code_indent("jal write");
-    reg_infos[reg_id].state = REG_FREE;
+    free_var_reg(reg_id);
     return;
   }
 
@@ -533,6 +533,7 @@ static void generate_dec(struct InterCode code) {
   var_infos[curr_var_info_index].var_no = var->u.placeno;
   var_infos[curr_var_info_index].var_name = ir->get_place(var->u.placeno);
   var_infos[curr_var_info_index].func_no = get_curr_func()->func_no;
+  var_infos[curr_var_info_index].pos.reg_id = 0;
 
   gen_code_indent("subu $sp, $sp, %u", size->u.value);
   get_curr_func()->curr_offset_fp += size->u.value;
@@ -642,8 +643,6 @@ static void generate_header() {
 // interface
 
 static void code_generate(FILE *file) {
-  srand(time(NULL));  // for rand victim
-
   f = file;
   curr = ir->get_ir_st();
 

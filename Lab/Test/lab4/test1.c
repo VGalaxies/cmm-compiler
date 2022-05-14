@@ -3,7 +3,7 @@ int main() {
   n = read();
   while (i < n) {
     int c = a + b;
-    write(c);
+    write(b);
     a = b;
     b = c;
     i = i + 1;

@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   FILE *out = fopen(argv[2], "w");
   if (!out) {
     perror(argv[2]);
-    mm->clear_malloc(); // note
+    mm->clear_malloc();  // note
     exit(EXIT_FAILURE);
   }
   code->generate(out);
