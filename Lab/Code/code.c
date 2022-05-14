@@ -133,6 +133,8 @@ static int ensure_var_in_reg(size_t var_no) {
     var_infos[var_info_index].type = REG;
     var_infos[var_info_index].pos.reg_id = reg_id;
 
+    assert(var_infos[var_info_index].pos.offset_fp >= 44);
+
     // load from stack
     gen_code_indent("lw %s, -%d($fp)", reg_name[reg_id],
                     var_infos[var_info_index].pos.offset_fp);
@@ -282,7 +284,7 @@ static void generate_binop(struct InterCode code) {
         }
         reg_infos[result_reg_id].state = REG_FREE;
         reg_infos[op1_reg_id].state = REG_FREE;
-      } else if (code.kind == IR_MUL || code.kind == IR_DIV) {
+      } else {
         int result_reg_id = ensure_var_in_reg(result->u.placeno);
         int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
         int op2_reg_id = get_tmp_reg();
@@ -340,7 +342,82 @@ static void generate_binop(struct InterCode code) {
   return;
 }
 
-static void generate_relop(struct InterCode code) {}
+static void generate_relop(struct InterCode code) {
+  Operand x = code.u.relop.x;
+  Operand y = code.u.relop.y;
+  Operand z = code.u.relop.z;
+
+  int x_reg_id, y_reg_id;
+  const char *label = ir->get_place(z->u.placeno);
+
+  if (x->kind == OP_VARIABLE && y->kind == OP_VARIABLE) {
+    x_reg_id = ensure_var_in_reg(x->u.placeno);
+    y_reg_id = ensure_var_in_reg(y->u.placeno);
+    goto END;
+  }
+
+  if (x->kind == OP_VARIABLE && y->kind == OP_CONSTANT) {
+    x_reg_id = ensure_var_in_reg(x->u.placeno);
+    y_reg_id = get_tmp_reg();
+    gen_code_indent("li %s, %u", reg_name[y_reg_id], y->u.value);
+    goto END;
+  }
+
+  if (x->kind == OP_CONSTANT && y->kind == OP_CONSTANT) {
+    x_reg_id = get_tmp_reg();
+    y_reg_id = get_tmp_reg();
+    gen_code_indent("li %s, %u", reg_name[x_reg_id], x->u.value);
+    gen_code_indent("li %s, %u", reg_name[y_reg_id], y->u.value);
+    goto END;
+  }
+
+  assert(0);
+
+END:
+  switch (code.u.relop.type) {
+    case _LT:
+      gen_code_indent("blt %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
+                      label);
+      break;
+    case _LE:
+      gen_code_indent("ble %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
+                      label);
+      break;
+    case _EQ:
+      gen_code_indent("beq %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
+                      label);
+      break;
+    case _NE:
+      gen_code_indent("bne %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
+                      label);
+      break;
+    case _GT:
+      gen_code_indent("bgt %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
+                      label);
+      break;
+    case _GE:
+      gen_code_indent("bge %s, %s, %s", reg_name[x_reg_id], reg_name[y_reg_id],
+                      label);
+      break;
+    default:
+      assert(0);
+      break;
+  }
+
+  if (x->kind == OP_VARIABLE) {
+    reg_infos[x_reg_id].state = REG_FREE;
+  } else if (x->kind == OP_CONSTANT) {
+    reg_infos[x_reg_id].state = REG_NONE;
+  }
+
+  if (y->kind == OP_VARIABLE) {
+    reg_infos[y_reg_id].state = REG_FREE;
+  } else if (y->kind == OP_CONSTANT) {
+    reg_infos[y_reg_id].state = REG_NONE;
+  }
+  
+  return;
+}
 
 static void generate_callee_prologue() {
   gen_code_indent("subu $sp, $sp, 40");
@@ -569,9 +646,10 @@ static void code_generate(FILE *file) {
 
   f = file;
   curr = ir->get_ir_st();
-  reset();
 
+  reset();
   generate_header();
+
   while (curr) {
     if (curr->lineno == -1) {  // ir end
       break;
