@@ -77,15 +77,15 @@ int main(int argc, char *argv[]) {
   ir->ir_generate(stdout);
 #endif
 
-  // FILE *out = fopen(argv[2], "w");
-  // if (!out) {
-  //   perror(argv[2]);
-  //   mm->clear_malloc(); // note
-  //   exit(EXIT_FAILURE);
-  // }
-  // code->generate(out);
-  // assert(!fclose(out));
-  // code->generate(stdout);
+  FILE *out = fopen(argv[2], "w");
+  if (!out) {
+    perror(argv[2]);
+    mm->clear_malloc(); // note
+    exit(EXIT_FAILURE);
+  }
+  code->generate(out);
+  assert(!fclose(out));
+  code->generate(stdout);
 
 FINAL:
   mm->clear_malloc();
