@@ -13,25 +13,9 @@ static FILE *f;
 
 // reg
 
-static const char *reg_name[32] = {
-    "$zero", "$at", "$v0", "$v1", "$a0", "$a1", "$a2", "$a3",
-    "$t0",   "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7",
-    "$s0",   "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7",
-    "$t8",   "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra",
-};
-
-enum { REG_FREE = -1 };
-// -1 -> free
-// other -> var no
-static int reg_state[32] = {[0 ... 31] = REG_FREE};  // gcc only
+static struct RegisterDescriptor reg_infos[32];
 
 // func descriptor
-
-struct FunctionDescriptor {
-  const char *func_name;  // for debug
-  size_t func_no;
-  int curr_offset_fp;
-};
 
 static struct FunctionDescriptor func_infos[32];
 static size_t curr_func_info_index;
@@ -54,17 +38,6 @@ static struct FunctionDescriptor *get_curr_func() {
 
 // var descriptor
 
-struct VariableDescriptor {
-  const char *var_name;  // for debug
-  size_t var_no;
-  size_t func_no;  // for offset
-  struct {         // not union, keep offset info
-    int offset_fp;
-    int reg_id;
-  } pos;
-  enum { STACK, REG } type;
-};
-
 static struct VariableDescriptor var_infos[1024];
 static size_t curr_var_info_index;
 
@@ -81,21 +54,16 @@ static size_t get_var_info_index(size_t var_no) {
 
 static void reset() {
   curr_func_info_index = 0;
-  memset(func_infos, 0, sizeof(func_infos));
-
   curr_var_info_index = 0;
-  memset(var_infos, 0, sizeof(var_infos));
 
-  for (int i = 0; i < 32; ++i) {
-    reg_state[i] = REG_FREE;
-  }
+  memset(func_infos, 0, sizeof(func_infos));
+  memset(var_infos, 0, sizeof(var_infos));
+  memset(reg_infos, 0, sizeof(reg_infos));
 }
 
 static int is_var_in_reg(size_t var_no) {
-  assert(var_no != REG_FREE);
-
   for (int i = 16; i < 24; ++i) {  // $s0 ~ $s7
-    if (reg_state[i] == var_no) {
+    if (reg_infos[i].state != REG_NONE && reg_infos[i].var_no == var_no) {
       return i;
     }
   }
@@ -104,18 +72,21 @@ static int is_var_in_reg(size_t var_no) {
 
 static int alloc_reg() {
   for (int i = 16; i < 24; ++i) {
-    if (reg_state[i] == REG_FREE) {
+    if (reg_infos[i].state == REG_NONE) {
       return i;
     }
   }
 
-  int l = 16, r = 24;
-  int victim = rand() % (r - l) + l;
-  assert(l <= victim && victim < r);
+  int l = 16, r = 24, victim;
+  while (1) {
+    victim = rand() % (r - l) + l;
+    assert(l <= victim && victim < r);
+    if (reg_infos[victim].state == REG_FREE) {
+      break;
+    }
+  }
 
-  int var_no = reg_state[victim];
-  assert(var_no != REG_FREE);
-  size_t var_info_index = get_var_info_index(var_no);
+  size_t var_info_index = get_var_info_index(reg_infos[victim].var_no);
   assert(var_info_index != -1);
 
   struct VariableDescriptor var_info = var_infos[var_info_index];
@@ -137,13 +108,13 @@ static int alloc_reg() {
   var_infos[var_info_index].type = STACK;
   var_infos[var_info_index].pos.reg_id = 0;  // reset
 
-  reg_state[victim] = REG_FREE;  // now free
+  reg_infos[victim].var_no = 0;  // reset
   return victim;
 }
 
 static int get_tmp_reg() {
   int reg_id = alloc_reg();
-  assert(reg_state[reg_id] == REG_FREE);  // still free
+  reg_infos[reg_id].state = REG_IN_USE;  // now in use
   return reg_id;
 }
 
@@ -154,7 +125,8 @@ static int ensure_var_in_reg(size_t var_no) {
   }
 
   reg_id = alloc_reg();
-  reg_state[reg_id] = var_no;
+  reg_infos[reg_id].state = REG_IN_USE;  // now in use
+  reg_infos[reg_id].var_no = var_no;
 
   size_t var_info_index = get_var_info_index(var_no);
   if (var_info_index != -1) {
@@ -188,6 +160,7 @@ static void generate_assign(struct InterCode code) {
   if (left->kind == OP_VARIABLE && right->kind == OP_CONSTANT) {
     int left_reg_id = ensure_var_in_reg(left->u.placeno);
     gen_code_indent("li %s, %u", reg_name[left_reg_id], right->u.value);
+    reg_infos[left_reg_id].state = REG_FREE;
     return;
   }
 
@@ -197,6 +170,8 @@ static void generate_assign(struct InterCode code) {
     int right_reg_id = ensure_var_in_reg(right->u.placeno);
     gen_code_indent("move %s, %s", reg_name[left_reg_id],
                     reg_name[right_reg_id]);
+    reg_infos[left_reg_id].state = REG_FREE;
+    reg_infos[right_reg_id].state = REG_FREE;
     return;
   }
 
@@ -206,6 +181,8 @@ static void generate_assign(struct InterCode code) {
     int right_reg_id = ensure_var_in_reg(right->u.placeno);
     gen_code_indent("lw %s, 0(%s)", reg_name[left_reg_id],
                     reg_name[right_reg_id]);
+    reg_infos[left_reg_id].state = REG_FREE;
+    reg_infos[right_reg_id].state = REG_FREE;
     return;
   }
 
@@ -215,6 +192,8 @@ static void generate_assign(struct InterCode code) {
     int right_reg_id = ensure_var_in_reg(right->u.placeno);
     gen_code_indent("sw %s, 0(%s)", reg_name[right_reg_id],
                     reg_name[left_reg_id]);
+    reg_infos[left_reg_id].state = REG_FREE;
+    reg_infos[right_reg_id].state = REG_FREE;
     return;
   }
 
@@ -225,6 +204,8 @@ static void generate_assign(struct InterCode code) {
     gen_code_indent("li %s, %u", reg_name[tmp_reg_id], right->u.value);
     gen_code_indent("sw %s, 0(%s)", reg_name[tmp_reg_id],
                     reg_name[left_reg_id]);
+    reg_infos[left_reg_id].state = REG_FREE;
+    reg_infos[tmp_reg_id].state = REG_NONE;  // note
     return;
   }
 
@@ -259,6 +240,7 @@ static void generate_binop(struct InterCode code) {
           assert(0);
       }
       gen_code_indent("li %s, %u", reg_name[result_reg_id], res);
+      reg_infos[result_reg_id].state = REG_FREE;
       return;
     }
   }
@@ -266,20 +248,7 @@ static void generate_binop(struct InterCode code) {
   // array
   if (result->kind == OP_ADDRESS &&
       (op1->kind == OP_ADDRESS_ORI || op1->kind == OP_ADDRESS)) {
-    assert(code.kind == IR_ADD);  // assumed
-    if (op2->kind == OP_CONSTANT) {
-      assert(0);  // assumed
-
-      int result_reg_id = ensure_var_in_reg(result->u.placeno);
-
-      size_t addr_no = get_var_info_index(op1->u.placeno);
-      assert(addr_no != -1 && var_infos[addr_no].type == STACK);
-
-      gen_code_indent("addi %s, $fp, -%u", reg_name[result_reg_id],
-                      var_infos[addr_no].pos.offset_fp - op2->u.value);
-      return;
-    }
-
+    assert(code.kind == IR_ADD && op2->kind == OP_VARIABLE);  // assumed
     if (op2->kind == OP_VARIABLE) {
       int result_reg_id = ensure_var_in_reg(result->u.placeno);
       int op2_reg_id = ensure_var_in_reg(op2->u.placeno);
@@ -291,6 +260,9 @@ static void generate_binop(struct InterCode code) {
                       var_infos[addr_no].pos.offset_fp);
       gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
                       reg_name[result_reg_id], reg_name[op2_reg_id]);
+
+      reg_infos[result_reg_id].state = REG_FREE;
+      reg_infos[op2_reg_id].state = REG_FREE;
       return;
     }
   }
@@ -308,6 +280,8 @@ static void generate_binop(struct InterCode code) {
           gen_code_indent("addi %s, %s, -%u", reg_name[result_reg_id],
                           reg_name[op1_reg_id], op2->u.value);
         }
+        reg_infos[result_reg_id].state = REG_FREE;
+        reg_infos[op1_reg_id].state = REG_FREE;
       } else if (code.kind == IR_MUL || code.kind == IR_DIV) {
         int result_reg_id = ensure_var_in_reg(result->u.placeno);
         int op1_reg_id = ensure_var_in_reg(op1->u.placeno);
@@ -321,6 +295,9 @@ static void generate_binop(struct InterCode code) {
                           reg_name[op2_reg_id]);
           gen_code_indent("mflo %s", reg_name[result_reg_id]);
         }
+        reg_infos[result_reg_id].state = REG_FREE;
+        reg_infos[op1_reg_id].state = REG_FREE;
+        reg_infos[op2_reg_id].state = REG_NONE;  // note
       }
       return;
     }
@@ -351,6 +328,10 @@ static void generate_binop(struct InterCode code) {
         default:
           assert(0);
       }
+
+      reg_infos[result_reg_id].state = REG_FREE;
+      reg_infos[op1_reg_id].state = REG_FREE;
+      reg_infos[op2_reg_id].state = REG_FREE;
       return;
     }
   }
@@ -412,6 +393,7 @@ static void generate_return(struct InterCode code) {
   if (op->kind == OP_VARIABLE) {
     int reg_id = ensure_var_in_reg(op->u.placeno);
     gen_code_indent("move $v0, %s", reg_name[reg_id]);
+    reg_infos[reg_id].state = REG_FREE;
     goto END;
   }
 
@@ -432,6 +414,7 @@ static void generate_read(struct InterCode code) {
     int reg_id = ensure_var_in_reg(op->u.placeno);
     gen_code_indent("jal read");
     gen_code_indent("move %s, $v0", reg_name[reg_id]);
+    reg_infos[reg_id].state = REG_FREE;
     return;
   }
 
@@ -444,6 +427,7 @@ static void generate_write(struct InterCode code) {
     int reg_id = ensure_var_in_reg(op->u.placeno);
     gen_code_indent("move $a0, %s", reg_name[reg_id]);
     gen_code_indent("jal write");
+    reg_infos[reg_id].state = REG_FREE;
     return;
   }
 
@@ -457,6 +441,7 @@ static void generate_write(struct InterCode code) {
     int reg_id = ensure_var_in_reg(op->u.placeno);
     gen_code_indent("lw $a0, 0(%s)", reg_name[reg_id]);
     gen_code_indent("jal write");
+    reg_infos[reg_id].state = REG_FREE;
     return;
   }
 

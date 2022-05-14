@@ -1,16 +1,18 @@
 int main() {
-  int x, y, z;
+  int x = 2;
+  int y = 1;
 
-  x = 1;
-  x = y;
-  x = y + z;
-  x = y + 1;
-  x = y - z;
-  x = y - z;
-  x = y * z;
-  x = y * 1;
-  x = y / z;
-  x = y / 1;
+  write(x + 1);
+  write(x + y);
+
+  write(x - 1);
+  write(x - y);
+
+  write(x * 1);
+  write(x * y);
+
+  write(x / 1);
+  write(x / y);
 
   return 0;
 }

@@ -328,4 +328,36 @@ struct InterCodesItem {
   InterCodes prev, next;
 };
 
+/* code generation */
+
+static const char *reg_name[32] = {
+    "$zero", "$at", "$v0", "$v1", "$a0", "$a1", "$a2", "$a3", "$t0", "$t1", "$t2",
+    "$t3",   "$t4", "$t5", "$t6", "$t7", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5",
+    "$s6",   "$s7", "$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra",
+};
+
+enum { REG_NONE = 0, REG_IN_USE, REG_FREE };
+
+struct RegisterDescriptor {
+  int state;
+  int var_no;
+};
+
+struct FunctionDescriptor {
+  const char *func_name;  // for debug
+  size_t func_no;
+  int curr_offset_fp;
+};
+
+struct VariableDescriptor {
+  const char *var_name;  // for debug
+  size_t var_no;
+  size_t func_no;  // for offset
+  struct {         // not union, keep offset info
+    int offset_fp;
+    int reg_id;
+  } pos;
+  enum { STACK, REG } type;
+};
+
 #endif
