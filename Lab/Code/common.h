@@ -17,6 +17,7 @@
 // #define SYNTAX_DEBUG
 // #define SEMANTIC_DEBUG
 // #define IR_DEBUG
+// #define OUT_DEBUG
 
 /* debug info */
 

@@ -232,22 +232,25 @@ static const char *interp_op(Operand op) {
     case OP_CONSTANT: {
       char *res = (char *)mm->log_malloc(16 * sizeof(char));
       memset(res, 0, 16 * sizeof(char));
-      sprintf(res, "#%d", op->u.value);
+      sprintf(res, "#%u", op->u.value);
       return res;
     }
     case OP_FUNC:
     case OP_LABEL:
     case OP_ADDRESS:
     case OP_VARIABLE: {
+      assert(op->u.placeno != -1); // for function call without lvalue
       return placemap[op->u.placeno];
     }
     case OP_ADDRESS_ORI: {
+      assert(op->u.placeno != -1);
       char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
       memset(res, 0, (LENGTH + 1) * sizeof(char));
       sprintf(res, "&%s", placemap[op->u.placeno]);
       return res;
     }
     case OP_ADDRESS_DEREF: {
+      assert(op->u.placeno != -1);
       char *res = (char *)mm->log_malloc((LENGTH + 1) * sizeof(char));
       memset(res, 0, (LENGTH + 1) * sizeof(char));
       sprintf(res, "*%s", placemap[op->u.placeno]);
@@ -377,14 +380,14 @@ static void ir_generate(FILE *f) {
 
 /* translate functions */
 
-static Operand guard = (Operand)1; // TODO -> bad practice
+static Operand guard = (Operand)1;  // TODO -> bad practice
 static Operand translate_exp(struct Ast *node, size_t placeno);
 static Operand translate_exp_chk(struct Ast *node, size_t placeno) {
   Operand res = translate_exp(node, placeno);
   if (res == guard) {
-      printf("IR Error: Code serves bool as int.\n");
-      longjmp(buf, 1);
-      return NULL;
+    printf("IR Error: Code serves bool as int.\n");
+    longjmp(buf, 1);
+    return NULL;
   }
   return res;
 }
@@ -504,7 +507,9 @@ static Operand translate_exp(
 
     assert(left->type && right->type);
     if (left->type->kind != BASIC && right->type->kind != BASIC) {
-      printf("IR Error: Code contains direct assignment between compound variables.\n");
+      printf(
+          "IR Error: Code contains direct assignment between compound "
+          "variables.\n");
       longjmp(buf, 1);
     }
 
@@ -662,7 +667,8 @@ static Operand translate_exp(
 
   // unary minus
   if (check_node(node, 2, _MINUS, _Exp)) {
-    Operand op2 = translate_exp_chk(node->children[1], store_place(NULL, "tmp"));
+    Operand op2 =
+        translate_exp_chk(node->children[1], store_place(NULL, "tmp"));
 
     Operand op1 = (Operand)mm->log_malloc(sizeof(struct OperandItem));
     op1->kind = OP_CONSTANT;
@@ -1262,13 +1268,9 @@ static void translate(struct Ast *root) {
   }
 }
 
-static InterCodes get_ir_st() {
-  return ir_st;
-}
+static InterCodes get_ir_st() { return ir_st; }
 
-static const char *get_place(size_t index) {
-  return placemap[index];
-}
+static const char *get_place(size_t index) { return placemap[index]; }
 
 /* interface */
 

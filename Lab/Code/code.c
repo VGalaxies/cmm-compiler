@@ -251,7 +251,7 @@ static void generate_binop(struct InterCode code) {
            var_infos[addr_no].pos.reg_id == 0 &&
            var_infos[addr_no].pos.offset_fp >= 8 + 4);  // not param
 
-    gen_code_indent("addi %s, $fp, -%u", reg_name[result_reg_id],
+    gen_code_indent("addi %s, $fp, -%d", reg_name[result_reg_id],
                     var_infos[addr_no].pos.offset_fp);
     gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
                     reg_name[result_reg_id], reg_name[op2_reg_id]);
@@ -556,7 +556,7 @@ static void generate_arg() {
   assert(curr->code.kind == IR_ASSIGN_CALL);
   InterCodes st = curr;
 
-  gen_code_indent("subu $sp, $sp, %u", count * 4);
+  gen_code_indent("subu $sp, $sp, %d", count * 4);
   int offset = count * 4 - 4;
   while (ed != st) {
     switch (ed->code.u.single.op->kind) {
