@@ -546,7 +546,7 @@ static void generate_dec(struct InterCode code) {
   curr_var_info_index++;
 }
 
-static void generate_arg() {
+static int generate_arg() {
   int count = 0;
   InterCodes ed = curr;
   while (curr->code.kind == IR_ARG) {
@@ -591,6 +591,8 @@ static void generate_arg() {
     offset -= 4;
   }
   assert(offset == -4);
+
+  return count;
 }
 
 static void generate_param() {
@@ -613,7 +615,7 @@ static void generate_param() {
   }
 }
 
-static void generate_assign_call(struct InterCode code) {
+static void generate_assign_call(struct InterCode code, int arg_count) {
   Operand left = code.u.assign.left;
   Operand right = code.u.assign.right;
 
@@ -635,10 +637,16 @@ static void generate_assign_call(struct InterCode code) {
     default:
       assert(0);
   }
+
+  if (arg_count != 0) {
+    gen_code_indent("addi $sp, $sp, %d", arg_count * 4);
+  }
 }
 
 static void code_generate_step() {
   struct InterCode code = curr->code;
+  int arg_count = 0;
+
   switch (code.kind) {
     case IR_LABEL:
       gen_code("%s:", ir->get_place(code.u.single.op->u.placeno));
@@ -657,13 +665,15 @@ static void code_generate_step() {
       generate_return(code);
       curr = curr->next;
       break;
+
+    case IR_ARG:
+      arg_count = generate_arg();
+      assert(curr->code.kind == IR_ASSIGN_CALL);
     case IR_ASSIGN_CALL:
-      generate_assign_call(code);
+      generate_assign_call(curr->code, arg_count);
       curr = curr->next;
       break;
-    case IR_ARG:
-      generate_arg();
-      break;
+
     case IR_PARAM:
       generate_param();
       break;
