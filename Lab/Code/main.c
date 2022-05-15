@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
   }
   code->generate(out);
   assert(!fclose(out));
-  code->generate(stdout);
+  // code->generate(stdout);
 
 FINAL:
   mm->clear_malloc();

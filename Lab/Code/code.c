@@ -71,18 +71,7 @@ static int alloc_reg() {
   assert(0);
 }
 
-// static void free_addr_reg(int reg_id) {
-//   if (reg_id == -1) {
-//     return;
-//   }
-//   assert(reg_infos[reg_id].state == REG_IN_USE);
-//   reg_infos[reg_id].state = REG_FREE;
-
-//   assert(reg_infos[reg_id].var_no != -1);
-//   reg_infos[reg_id].var_no = -1;  // reset
-// }
-
-static void free_var_reg(int reg_id) {
+static void free_reg(int reg_id) {
   if (reg_id == -1) {
     return;
   }
@@ -93,11 +82,18 @@ static void free_var_reg(int reg_id) {
   if (reg_infos[reg_id].var_no != -1) {
     size_t var_info_index = get_var_info_index(reg_infos[reg_id].var_no);
     assert(var_info_index != -1 && var_infos[var_info_index].type == REG &&
-           var_infos[var_info_index].pos.reg_id == reg_id &&
-           var_infos[var_info_index].pos.offset_fp >= 8 + 4);
+           var_infos[var_info_index].pos.reg_id == reg_id);
 
-    gen_code_indent("sw %s, -%d($fp)", reg_name[reg_id],
-                    var_infos[var_info_index].pos.offset_fp);
+    // store into stack
+    if (var_infos[var_info_index].pos.offset_fp <= 0) {  // param
+      gen_code_indent("sw %s, %d($fp)", reg_name[reg_id],
+                      -var_infos[var_info_index].pos.offset_fp);
+    } else if (var_infos[var_info_index].pos.offset_fp >= 8 + 4) {
+      gen_code_indent("sw %s, -%d($fp)", reg_name[reg_id],
+                      var_infos[var_info_index].pos.offset_fp);
+    } else {
+      assert(0);
+    }
 
     var_infos[var_info_index].type = STACK;
     var_infos[var_info_index].pos.reg_id = 0;  // reset
@@ -121,15 +117,21 @@ static int get_var_reg(size_t var_no) {
   size_t var_info_index = get_var_info_index(var_no);
   if (var_info_index != -1) {
     assert(var_infos[var_info_index].type == STACK &&
-           var_infos[var_info_index].pos.reg_id == 0 &&
-           var_infos[var_info_index].pos.offset_fp >= 8 + 4);
+           var_infos[var_info_index].pos.reg_id == 0);
+
+    // load from stack
+    if (var_infos[var_info_index].pos.offset_fp <= 0) {
+      gen_code_indent("lw %s, %d($fp)", reg_name[reg_id],
+                      -var_infos[var_info_index].pos.offset_fp);
+    } else if (var_infos[var_info_index].pos.offset_fp >= 8 + 4) {
+      gen_code_indent("lw %s, -%d($fp)", reg_name[reg_id],
+                      var_infos[var_info_index].pos.offset_fp);
+    } else {
+      assert(0);
+    }
 
     var_infos[var_info_index].type = REG;
     var_infos[var_info_index].pos.reg_id = reg_id;
-
-    // load from stack
-    gen_code_indent("lw %s, -%d($fp)", reg_name[reg_id],
-                    var_infos[var_info_index].pos.offset_fp);
   } else {  // first occur
     var_infos[curr_var_info_index].type = REG;
     var_infos[curr_var_info_index].pos.reg_id = reg_id;
@@ -163,7 +165,7 @@ static void generate_assign(struct InterCode code) {
   if (left->kind == OP_VARIABLE && right->kind == OP_CONSTANT) {
     int left_reg_id = get_var_reg(left->u.placeno);
     gen_code_indent("li %s, %u", reg_name[left_reg_id], right->u.value);
-    free_var_reg(left_reg_id);
+    free_reg(left_reg_id);
     return;
   }
 
@@ -173,8 +175,8 @@ static void generate_assign(struct InterCode code) {
     int right_reg_id = get_var_reg(right->u.placeno);
     gen_code_indent("move %s, %s", reg_name[left_reg_id],
                     reg_name[right_reg_id]);
-    free_var_reg(left_reg_id);
-    free_var_reg(right_reg_id);
+    free_reg(left_reg_id);
+    free_reg(right_reg_id);
     return;
   }
 
@@ -184,8 +186,8 @@ static void generate_assign(struct InterCode code) {
     int right_reg_id = get_var_reg(right->u.placeno);
     gen_code_indent("lw %s, 0(%s)", reg_name[left_reg_id],
                     reg_name[right_reg_id]);
-    free_var_reg(left_reg_id);
-    free_var_reg(right_reg_id);
+    free_reg(left_reg_id);
+    free_reg(right_reg_id);
     return;
   }
 
@@ -195,8 +197,8 @@ static void generate_assign(struct InterCode code) {
     int right_reg_id = get_var_reg(right->u.placeno);
     gen_code_indent("sw %s, 0(%s)", reg_name[right_reg_id],
                     reg_name[left_reg_id]);
-    free_var_reg(left_reg_id);
-    free_var_reg(right_reg_id);
+    free_reg(left_reg_id);
+    free_reg(right_reg_id);
     return;
   }
 
@@ -207,8 +209,8 @@ static void generate_assign(struct InterCode code) {
     gen_code_indent("li %s, %u", reg_name[tmp_reg_id], right->u.value);
     gen_code_indent("sw %s, 0(%s)", reg_name[tmp_reg_id],
                     reg_name[left_reg_id]);
-    free_var_reg(left_reg_id);
-    free_var_reg(tmp_reg_id);
+    free_reg(left_reg_id);
+    free_reg(tmp_reg_id);
     return;
   }
 
@@ -221,9 +223,9 @@ static void generate_assign(struct InterCode code) {
                     reg_name[right_reg_id]);
     gen_code_indent("sw %s, 0(%s)", reg_name[tmp_reg_id],
                     reg_name[left_reg_id]);
-    free_var_reg(left_reg_id);
-    free_var_reg(right_reg_id);
-    free_var_reg(tmp_reg_id);
+    free_reg(left_reg_id);
+    free_reg(right_reg_id);
+    free_reg(tmp_reg_id);
   }
 
   assert(0);
@@ -236,25 +238,26 @@ static void generate_binop(struct InterCode code) {
   Operand op2 = code.u.binop.op2;
 
   // special handling for array addresses
-  if (result->kind == OP_ADDRESS &&
-      (op1->kind == OP_ADDRESS_ORI || op1->kind == OP_ADDRESS)) {
-    assert(code.kind == IR_ADD && op2->kind == OP_VARIABLE);  // assumed
+  if (result->kind == OP_ADDRESS) {
+    assert(code.kind == IR_ADD && op1->kind == OP_ADDRESS_ORI &&
+           op2->kind == OP_VARIABLE);  // assumed
 
     int result_reg_id = get_var_reg(result->u.placeno);
     int op2_reg_id = get_var_reg(op2->u.placeno);
 
-    size_t addr_no = get_var_info_index(op1->u.placeno);
+    size_t addr_no = get_var_info_index(
+        op1->u.placeno);  // first address of the array always in stack
     assert(addr_no != -1 && var_infos[addr_no].type == STACK &&
            var_infos[addr_no].pos.reg_id == 0 &&
-           var_infos[addr_no].pos.offset_fp >= 8 + 4);
+           var_infos[addr_no].pos.offset_fp >= 8 + 4);  // not param
 
     gen_code_indent("addi %s, $fp, -%u", reg_name[result_reg_id],
                     var_infos[addr_no].pos.offset_fp);
     gen_code_indent("add %s, %s, %s", reg_name[result_reg_id],
                     reg_name[result_reg_id], reg_name[op2_reg_id]);
 
-    free_var_reg(result_reg_id);
-    free_var_reg(op2_reg_id);
+    free_reg(result_reg_id);
+    free_reg(op2_reg_id);
 
     return;
   }
@@ -339,12 +342,12 @@ static void generate_binop(struct InterCode code) {
   }
 
   // reset reg state
-  free_var_reg(op1_reg_id);
-  free_var_reg(op1_tmp_reg_id);
-  free_var_reg(op2_reg_id);
-  free_var_reg(op2_tmp_reg_id);
-  free_var_reg(result_reg_id);
-  free_var_reg(result_tmp_reg_id);
+  free_reg(op1_reg_id);
+  free_reg(op1_tmp_reg_id);
+  free_reg(op2_reg_id);
+  free_reg(op2_tmp_reg_id);
+  free_reg(result_reg_id);
+  free_reg(result_tmp_reg_id);
 
   // TDDO -> assertion
   return;
@@ -397,10 +400,10 @@ static void generate_relop(struct InterCode code) {
 
   // reset reg state
   // before cond jump
-  free_var_reg(x_reg_id);
-  free_var_reg(x_tmp_reg_id);
-  free_var_reg(y_reg_id);
-  free_var_reg(y_tmp_reg_id);
+  free_reg(x_reg_id);
+  free_reg(x_tmp_reg_id);
+  free_reg(y_reg_id);
+  free_reg(y_tmp_reg_id);
 
   switch (code.u.relop.type) {
     case _LT:
@@ -470,7 +473,7 @@ static void generate_return(struct InterCode code) {
   if (op->kind == OP_VARIABLE) {
     int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("move $v0, %s", reg_name[reg_id]);
-    free_var_reg(reg_id);
+    free_reg(reg_id);
     goto END;
   }
 
@@ -491,7 +494,7 @@ static void generate_read(struct InterCode code) {
     int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("jal read");
     gen_code_indent("move %s, $v0", reg_name[reg_id]);
-    free_var_reg(reg_id);
+    free_reg(reg_id);
     return;
   }
 
@@ -504,7 +507,7 @@ static void generate_write(struct InterCode code) {
     int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("move $a0, %s", reg_name[reg_id]);
     gen_code_indent("jal write");
-    free_var_reg(reg_id);
+    free_reg(reg_id);
     return;
   }
 
@@ -518,7 +521,7 @@ static void generate_write(struct InterCode code) {
     int reg_id = get_var_reg(op->u.placeno);
     gen_code_indent("lw $a0, 0(%s)", reg_name[reg_id]);
     gen_code_indent("jal write");
-    free_var_reg(reg_id);
+    free_reg(reg_id);
     return;
   }
 
@@ -543,6 +546,97 @@ static void generate_dec(struct InterCode code) {
   curr_var_info_index++;
 }
 
+static void generate_arg() {
+  int count = 0;
+  InterCodes ed = curr;
+  while (curr->code.kind == IR_ARG) {
+    curr = curr->next;
+    count++;
+  }
+  assert(curr->code.kind == IR_ASSIGN_CALL);
+  InterCodes st = curr;
+
+  gen_code_indent("subu $sp, $sp, %u", count * 4);
+  int offset = count * 4 - 4;
+  while (ed != st) {
+    switch (ed->code.u.single.op->kind) {
+      case OP_CONSTANT: {
+        int reg_id = get_tmp_reg();
+        gen_code_indent("li %s, %u", reg_name[reg_id],
+                        ed->code.u.single.op->u.value);
+        gen_code_indent("sw %s, %d($sp)", reg_name[reg_id], offset);
+        free_reg(reg_id);
+        break;
+      }
+      case OP_VARIABLE: {
+        int reg_id = get_var_reg(ed->code.u.single.op->u.placeno);
+        gen_code_indent("sw %s, %d($sp)", reg_name[reg_id], offset);
+        free_reg(reg_id);
+        break;
+      }
+      case OP_ADDRESS_DEREF: {
+        int reg_id = get_var_reg(ed->code.u.single.op->u.placeno);
+        int reg_tmp_id = get_tmp_reg();
+        gen_code_indent("lw %s, 0(%s)", reg_name[reg_tmp_id], reg_name[reg_id]);
+        gen_code_indent("sw %s, %d($sp)", reg_name[reg_tmp_id], offset);
+        free_reg(reg_id);
+        free_reg(reg_tmp_id);
+        break;
+      }
+      default:
+        assert(0);
+        break;
+    }
+    ed = ed->next;
+    offset -= 4;
+  }
+  assert(offset == -4);
+}
+
+static void generate_param() {
+  int offset = 0;
+  while (curr->code.kind == IR_PARAM) {
+    assert(curr->code.u.single.op->kind == OP_VARIABLE);
+
+    var_infos[curr_var_info_index].type = STACK;
+    var_infos[curr_var_info_index].var_no = curr->code.u.single.op->u.placeno;
+    var_infos[curr_var_info_index].var_name =
+        ir->get_place(curr->code.u.single.op->u.placeno);
+    var_infos[curr_var_info_index].func_no = get_curr_func()->func_no;
+    var_infos[curr_var_info_index].pos.offset_fp = offset;
+    var_infos[curr_var_info_index].pos.reg_id = 0;
+
+    curr_var_info_index++;
+    offset -= 4;
+
+    curr = curr->next;
+  }
+}
+
+static void generate_assign_call(struct InterCode code) {
+  Operand left = code.u.assign.left;
+  Operand right = code.u.assign.right;
+
+  assert(right->kind == OP_FUNC);
+  gen_code_indent("jal %s", ir->get_place(right->u.placeno));
+
+  switch (left->kind) {
+    case OP_VARIABLE: {
+      int reg_id = get_var_reg(left->u.placeno);
+      gen_code_indent("move %s, $v0", reg_name[reg_id]);
+      free_reg(reg_id);
+      break;
+    }
+    case OP_ADDRESS_DEREF: {
+      int reg_id = get_var_reg(left->u.placeno);
+      gen_code_indent("sw $v0, 0(%s)", reg_name[reg_id]);
+      free_reg(reg_id);
+    }
+    default:
+      assert(0);
+  }
+}
+
 static void code_generate_step() {
   struct InterCode code = curr->code;
   switch (code.kind) {
@@ -564,13 +658,14 @@ static void code_generate_step() {
       curr = curr->next;
       break;
     case IR_ASSIGN_CALL:
-      assert(0);
+      generate_assign_call(code);
+      curr = curr->next;
       break;
     case IR_ARG:
-      assert(0);
+      generate_arg();
       break;
     case IR_PARAM:
-      assert(0);
+      generate_param();
       break;
 
     case IR_READ:
