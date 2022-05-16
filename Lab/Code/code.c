@@ -553,7 +553,6 @@ static int generate_arg() {
     curr = curr->next;
     count++;
   }
-  assert(curr->code.kind == IR_ASSIGN_CALL);
   InterCodes st = curr;
 
   gen_code_indent("subu $sp, $sp, %d", count * 4);
@@ -668,7 +667,7 @@ static void code_generate_step() {
 
     case IR_ARG:
       arg_count = generate_arg();
-      assert(curr->code.kind == IR_ASSIGN_CALL);
+      assert(curr->code.kind == IR_ASSIGN_CALL); // fall through
     case IR_ASSIGN_CALL:
       generate_assign_call(curr->code, arg_count);
       curr = curr->next;
