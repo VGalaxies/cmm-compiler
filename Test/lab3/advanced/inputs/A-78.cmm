@@ -1,0 +1,81 @@
+
+int id_df(int id_gn9q11PY, int id_f_Zd5) {
+  if((((id_gn9q11PY > 0) && (id_f_Zd5 > 0) && (id_gn9q11PY > (2147483647 - id_f_Zd5))) || ((id_gn9q11PY < 0) && (id_f_Zd5 < 0) && (id_gn9q11PY < (-2147483648 - id_f_Zd5)))))
+  {
+    return id_gn9q11PY;
+  }
+  return id_gn9q11PY + id_f_Zd5;
+}
+
+int id_rGeay9FB3g(int id_QqveXOTk, int id_k) {
+  if(((id_QqveXOTk > 0) && (id_k < 0) && (id_QqveXOTk > 2147483647 + id_k))|| ((id_QqveXOTk < 0) && (id_k > 0) && (id_QqveXOTk < -2147483648 + id_k)))
+  {
+    return id_QqveXOTk;
+  }
+  return id_QqveXOTk - id_k;
+}
+
+int id_gFvpwzCbQy(int id_fha, int id_z0gqWiG) {
+  if((((id_fha > 0) && (id_z0gqWiG > 0) && (id_fha > (2147483647 / id_z0gqWiG))) || ((id_fha > 0) && (id_z0gqWiG <= 0) && (id_z0gqWiG < (-2147483648 / id_fha))) || ((id_fha <= 0) && (id_z0gqWiG > 0) && (id_fha < (-2147483648 / id_z0gqWiG))) || ((id_fha <= 0) && (id_z0gqWiG <= 0) && (id_fha != 0) && (id_z0gqWiG < (2147483647 / id_fha)))))
+  {
+    return id_fha;
+  }
+  return id_fha * id_z0gqWiG;
+}
+
+int id_PLw3(int id__av, int id_wdRqqb_) {
+  if(((id_wdRqqb_ == 0) || ((id__av == -2147483648) && (id_wdRqqb_ == (-1)))))
+  {
+    return id__av;
+  }
+  return id__av / id_wdRqqb_;
+}
+
+int id_WJvQA(int id_bZVQ, int id_b_) {
+  if(id_bZVQ < 0 || id_bZVQ >= id_b_)
+  {
+    return 0;
+  }
+  return id_bZVQ;
+}
+
+int id_P05juB(int id_W96JqKvo)
+{
+  int id_dE7es9VS9U[10];
+  id_dE7es9VS9U[0] = 24259;
+  id_dE7es9VS9U[1] = 64159;
+  id_dE7es9VS9U[2] = 5532;
+  id_dE7es9VS9U[3] = 7171;
+  id_dE7es9VS9U[4] = 9254;
+  id_dE7es9VS9U[5] = 30300;
+  id_dE7es9VS9U[6] = 9924;
+  id_dE7es9VS9U[7] = 17379;
+  id_dE7es9VS9U[8] = 62283;
+  id_dE7es9VS9U[9] = 48012;
+  id_dE7es9VS9U[0];
+  write(id_dE7es9VS9U[0]);
+  write(id_dE7es9VS9U[1]);
+  write(id_dE7es9VS9U[2]);
+  write(id_dE7es9VS9U[3]);
+  write(id_dE7es9VS9U[4]);
+  write(id_dE7es9VS9U[5]);
+  write(id_dE7es9VS9U[6]);
+  write(id_dE7es9VS9U[7]);
+  write(id_dE7es9VS9U[8]);
+  write(id_dE7es9VS9U[9]);
+  return ((id_W96JqKvo) >= (56799)) || ! id_W96JqKvo;
+}
+
+int id_SFaD()
+{
+  int id_ew;
+  id_ew = 47824;
+  id_P05juB(- id_ew);
+  write(id_ew);
+  return 41223;
+}
+
+int main() {
+  write(id_SFaD());
+  return 0;
+}

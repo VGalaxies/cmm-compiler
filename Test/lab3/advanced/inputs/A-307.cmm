@@ -1,0 +1,100 @@
+
+int id_PTY2mjLg(int id_DVw, int id_GDQUR) {
+  if((((id_DVw > 0) && (id_GDQUR > 0) && (id_DVw > (2147483647 - id_GDQUR))) || ((id_DVw < 0) && (id_GDQUR < 0) && (id_DVw < (-2147483648 - id_GDQUR)))))
+  {
+    return id_DVw;
+  }
+  return id_DVw + id_GDQUR;
+}
+
+int id_qjuozG4ky(int id_PD, int id_Bol) {
+  if(((id_PD > 0) && (id_Bol < 0) && (id_PD > 2147483647 + id_Bol))|| ((id_PD < 0) && (id_Bol > 0) && (id_PD < -2147483648 + id_Bol)))
+  {
+    return id_PD;
+  }
+  return id_PD - id_Bol;
+}
+
+int id_NCumeOMc(int id_rb, int id_KW) {
+  if((((id_rb > 0) && (id_KW > 0) && (id_rb > (2147483647 / id_KW))) || ((id_rb > 0) && (id_KW <= 0) && (id_KW < (-2147483648 / id_rb))) || ((id_rb <= 0) && (id_KW > 0) && (id_rb < (-2147483648 / id_KW))) || ((id_rb <= 0) && (id_KW <= 0) && (id_rb != 0) && (id_KW < (2147483647 / id_rb)))))
+  {
+    return id_rb;
+  }
+  return id_rb * id_KW;
+}
+
+int id_pj7fom7(int id_W, int id_W2__6v) {
+  if(((id_W2__6v == 0) || ((id_W == -2147483648) && (id_W2__6v == (-1)))))
+  {
+    return id_W;
+  }
+  return id_W / id_W2__6v;
+}
+
+int id_S0hWqnfeA(int id_P8, int id_X) {
+  if(id_P8 < 0 || id_P8 >= id_X)
+  {
+    return 0;
+  }
+  return id_P8;
+}
+
+int id_qz()
+{
+  int id_De9VXVyQMG;
+  int id_eaq5wzi;
+  int id_lZ;
+  int id_gaGn8Y8v[8];
+  int id_wzTN;
+  id_De9VXVyQMG = 28893;
+  id_eaq5wzi = 39139;
+  id_lZ = 22995;
+  id_gaGn8Y8v[0] = 2194;
+  id_gaGn8Y8v[1] = 65311;
+  id_gaGn8Y8v[2] = 36186;
+  id_gaGn8Y8v[3] = 36838;
+  id_gaGn8Y8v[4] = 38549;
+  id_gaGn8Y8v[5] = 4057;
+  id_gaGn8Y8v[6] = 6429;
+  id_gaGn8Y8v[7] = 39495;
+  id_wzTN = 52019;
+  write(id_De9VXVyQMG);
+  write(id_eaq5wzi);
+  write(id_lZ);
+  write(id_gaGn8Y8v[0]);
+  write(id_gaGn8Y8v[1]);
+  write(id_gaGn8Y8v[2]);
+  write(id_gaGn8Y8v[3]);
+  write(id_gaGn8Y8v[4]);
+  write(id_gaGn8Y8v[5]);
+  write(id_gaGn8Y8v[6]);
+  write(id_gaGn8Y8v[7]);
+  write(id_wzTN);
+  return ! id_gaGn8Y8v[((9030 * 32375) >= (17255))];
+  while(! - id_lZ)
+    ! - id_gaGn8Y8v[id_De9VXVyQMG] || id_lZ - 49300 + id_wzTN || ((((((id_lZ) < (id_De9VXVyQMG))) > (61075))) == (id_wzTN - 45833));
+  write(id_De9VXVyQMG);
+  write(id_eaq5wzi);
+  write(id_lZ);
+  write(id_gaGn8Y8v[0]);
+  write(id_gaGn8Y8v[1]);
+  write(id_gaGn8Y8v[2]);
+  write(id_gaGn8Y8v[3]);
+  write(id_gaGn8Y8v[4]);
+  write(id_gaGn8Y8v[5]);
+  write(id_gaGn8Y8v[6]);
+  write(id_gaGn8Y8v[7]);
+  write(id_wzTN);
+  return ((! id_gaGn8Y8v[id_eaq5wzi + id_lZ]) < (id_qz()));
+}
+
+int id_HaYe()
+{
+  id_qz();
+  return 20015;
+}
+
+int main() {
+  write(id_HaYe());
+  return 0;
+}

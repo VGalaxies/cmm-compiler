@@ -1,0 +1,77 @@
+
+int id_DPIGW(int id_dK2P, int id_GCJ6N) {
+  if((((id_dK2P > 0) && (id_GCJ6N > 0) && (id_dK2P > (2147483647 - id_GCJ6N))) || ((id_dK2P < 0) && (id_GCJ6N < 0) && (id_dK2P < (-2147483648 - id_GCJ6N)))))
+  {
+    return id_dK2P;
+  }
+  return id_dK2P + id_GCJ6N;
+}
+
+int id_gdrRKVAd(int id_Vyk, int id_aQuhOUfp5) {
+  if(((id_Vyk > 0) && (id_aQuhOUfp5 < 0) && (id_Vyk > 2147483647 + id_aQuhOUfp5))|| ((id_Vyk < 0) && (id_aQuhOUfp5 > 0) && (id_Vyk < -2147483648 + id_aQuhOUfp5)))
+  {
+    return id_Vyk;
+  }
+  return id_Vyk - id_aQuhOUfp5;
+}
+
+int id_Dvilxx_6hp(int id_oAYVjx, int id_u) {
+  if((((id_oAYVjx > 0) && (id_u > 0) && (id_oAYVjx > (2147483647 / id_u))) || ((id_oAYVjx > 0) && (id_u <= 0) && (id_u < (-2147483648 / id_oAYVjx))) || ((id_oAYVjx <= 0) && (id_u > 0) && (id_oAYVjx < (-2147483648 / id_u))) || ((id_oAYVjx <= 0) && (id_u <= 0) && (id_oAYVjx != 0) && (id_u < (2147483647 / id_oAYVjx)))))
+  {
+    return id_oAYVjx;
+  }
+  return id_oAYVjx * id_u;
+}
+
+int id_E_3a(int id_llWoZDtby, int id_yjUoN) {
+  if(((id_yjUoN == 0) || ((id_llWoZDtby == -2147483648) && (id_yjUoN == (-1)))))
+  {
+    return id_llWoZDtby;
+  }
+  return id_llWoZDtby / id_yjUoN;
+}
+
+int id_KD9A9M(int id__LY9, int id_DF_Iyvd_B) {
+  if(id__LY9 < 0 || id__LY9 >= id_DF_Iyvd_B)
+  {
+    return 0;
+  }
+  return id__LY9;
+}
+
+int id_EzuEQ5x(int id_ihKgJUWSzh)
+{
+  int id_RXD;
+  int id_PXXD_;
+  id_RXD = 65266;
+  id_PXXD_ = 59206;
+  id_RXD = id_ihKgJUWSzh = 38555 * id_PXXD_;
+  write(id_RXD);
+  write(id_PXXD_);
+  return id_EzuEQ5x(! id_ihKgJUWSzh / id_PXXD_) / id_PXXD_;
+}
+
+int id_zdntxR8qc(int id_ljm3S5OztT, int id_MESQjED, int id_HdExqXS, int id_U74uTdGK, int id_WlgR4xh)
+{
+  return - ! 42392;
+}
+
+int id_ZXFGnfY()
+{
+  int id_TiEt_;
+  int id_XVrtD;
+  int id_bbbnmh3eE;
+  id_TiEt_ = 45695;
+  id_XVrtD = 58250;
+  id_bbbnmh3eE = 32905;
+  id_zdntxR8qc(((- 4704) == (id_TiEt_)), id_XVrtD = id_bbbnmh3eE, id_bbbnmh3eE, 24145, ((id_bbbnmh3eE) >= (id_bbbnmh3eE)) && id_TiEt_);
+  write(id_TiEt_);
+  write(id_XVrtD);
+  write(id_bbbnmh3eE);
+  return 49907;
+}
+
+int main() {
+  write(id_ZXFGnfY());
+  return 0;
+}

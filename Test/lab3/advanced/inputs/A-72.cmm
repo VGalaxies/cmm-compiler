@@ -1,0 +1,72 @@
+
+int id_kcOos(int id_swbiYf4, int id_NoZbBPhV) {
+  if((((id_swbiYf4 > 0) && (id_NoZbBPhV > 0) && (id_swbiYf4 > (2147483647 - id_NoZbBPhV))) || ((id_swbiYf4 < 0) && (id_NoZbBPhV < 0) && (id_swbiYf4 < (-2147483648 - id_NoZbBPhV)))))
+  {
+    return id_swbiYf4;
+  }
+  return id_swbiYf4 + id_NoZbBPhV;
+}
+
+int id_yf9Auw(int id_Q, int id_Sov) {
+  if(((id_Q > 0) && (id_Sov < 0) && (id_Q > 2147483647 + id_Sov))|| ((id_Q < 0) && (id_Sov > 0) && (id_Q < -2147483648 + id_Sov)))
+  {
+    return id_Q;
+  }
+  return id_Q - id_Sov;
+}
+
+int id_QTG(int id_sqYO0, int id_z) {
+  if((((id_sqYO0 > 0) && (id_z > 0) && (id_sqYO0 > (2147483647 / id_z))) || ((id_sqYO0 > 0) && (id_z <= 0) && (id_z < (-2147483648 / id_sqYO0))) || ((id_sqYO0 <= 0) && (id_z > 0) && (id_sqYO0 < (-2147483648 / id_z))) || ((id_sqYO0 <= 0) && (id_z <= 0) && (id_sqYO0 != 0) && (id_z < (2147483647 / id_sqYO0)))))
+  {
+    return id_sqYO0;
+  }
+  return id_sqYO0 * id_z;
+}
+
+int id_o(int id_NQrN3LSgB, int id_S) {
+  if(((id_S == 0) || ((id_NQrN3LSgB == -2147483648) && (id_S == (-1)))))
+  {
+    return id_NQrN3LSgB;
+  }
+  return id_NQrN3LSgB / id_S;
+}
+
+int id_UN35AaH4x(int id_Luj7f, int id_Hfk) {
+  if(id_Luj7f < 0 || id_Luj7f >= id_Hfk)
+  {
+    return 0;
+  }
+  return id_Luj7f;
+}
+
+int id__wJcl(int id_P706KafDhz, int id_Ys0f3j_C, int id_cnR, int id_p4bP6kXv)
+{
+  int id_a[1];
+  id_a[0] = 20667;
+  write(id_a[0]);
+  return id_a[0] + id_P706KafDhz && ! - id_Ys0f3j_C * id_Ys0f3j_C;
+  write(id_a[0]);
+  return id_Ys0f3j_C = 17449;
+  write(id_a[0]);
+  return ((id_a[((63675) == (3000))]) != (! 19874));
+}
+
+int id_SMuhRT()
+{
+  int id_CaCj1J7t;
+  int id_vG1u;
+  int id_itq;
+  id_CaCj1J7t = 3980;
+  id_vG1u = 53934;
+  id_itq = 30615;
+  id__wJcl(((id__wJcl(52254, id_CaCj1J7t = 12964, 16914 && id_vG1u, id_itq = id_vG1u)) != (40741)), 32685 - id_vG1u, 20565 + 26272 + id_vG1u, id_vG1u / 49353 && 15446);
+  write(id_CaCj1J7t);
+  write(id_vG1u);
+  write(id_itq);
+  return 26637;
+}
+
+int main() {
+  write(id_SMuhRT());
+  return 0;
+}

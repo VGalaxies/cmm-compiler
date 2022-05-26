@@ -1,0 +1,72 @@
+
+int id_Ua1(int id_dQLlETPI, int id_i9f24kGKbv) {
+  if((((id_dQLlETPI > 0) && (id_i9f24kGKbv > 0) && (id_dQLlETPI > (2147483647 - id_i9f24kGKbv))) || ((id_dQLlETPI < 0) && (id_i9f24kGKbv < 0) && (id_dQLlETPI < (-2147483648 - id_i9f24kGKbv)))))
+  {
+    return id_dQLlETPI;
+  }
+  return id_dQLlETPI + id_i9f24kGKbv;
+}
+
+int id_ezXwX9Xh(int id_DVbiUwfx6, int id_CQ2z) {
+  if(((id_DVbiUwfx6 > 0) && (id_CQ2z < 0) && (id_DVbiUwfx6 > 2147483647 + id_CQ2z))|| ((id_DVbiUwfx6 < 0) && (id_CQ2z > 0) && (id_DVbiUwfx6 < -2147483648 + id_CQ2z)))
+  {
+    return id_DVbiUwfx6;
+  }
+  return id_DVbiUwfx6 - id_CQ2z;
+}
+
+int id_tgii4qsbC(int id_dSU_T, int id_ti_) {
+  if((((id_dSU_T > 0) && (id_ti_ > 0) && (id_dSU_T > (2147483647 / id_ti_))) || ((id_dSU_T > 0) && (id_ti_ <= 0) && (id_ti_ < (-2147483648 / id_dSU_T))) || ((id_dSU_T <= 0) && (id_ti_ > 0) && (id_dSU_T < (-2147483648 / id_ti_))) || ((id_dSU_T <= 0) && (id_ti_ <= 0) && (id_dSU_T != 0) && (id_ti_ < (2147483647 / id_dSU_T)))))
+  {
+    return id_dSU_T;
+  }
+  return id_dSU_T * id_ti_;
+}
+
+int id_xoZkEej4(int id_XRo5dr, int id_aFjLvGe) {
+  if(((id_aFjLvGe == 0) || ((id_XRo5dr == -2147483648) && (id_aFjLvGe == (-1)))))
+  {
+    return id_XRo5dr;
+  }
+  return id_XRo5dr / id_aFjLvGe;
+}
+
+int id_vl09(int id_pV4bY, int id_TLxNqD06R) {
+  if(id_pV4bY < 0 || id_pV4bY >= id_TLxNqD06R)
+  {
+    return 0;
+  }
+  return id_pV4bY;
+}
+
+int id_Ea(int id_nwdk, int id_SxecqzDD, int id_EeTgu6naY, int id_PyN, int id_BLd97ejx)
+{
+  int id_fB3VY[3];
+  id_fB3VY[0] = 25638;
+  id_fB3VY[1] = 31928;
+  id_fB3VY[2] = 2556;
+  write(id_fB3VY[0]);
+  write(id_fB3VY[1]);
+  write(id_fB3VY[2]);
+  return id_fB3VY[((31555 / id_nwdk) >= (id_nwdk)) && 27087 + 6674];
+}
+
+int id_TASq()
+{
+  int id_CKd9JZVUn;
+  int id_Oj6mh1q;
+  int id_thVO8D;
+  id_CKd9JZVUn = 10750;
+  id_Oj6mh1q = 18814;
+  id_thVO8D = 34343;
+  id_Ea(id_CKd9JZVUn = id_Oj6mh1q, 27015, id_thVO8D = 46603, id_Oj6mh1q, id_Oj6mh1q / 54034);
+  write(id_CKd9JZVUn);
+  write(id_Oj6mh1q);
+  write(id_thVO8D);
+  return 11346;
+}
+
+int main() {
+  write(id_TASq());
+  return 0;
+}

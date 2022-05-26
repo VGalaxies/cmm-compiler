@@ -1,0 +1,78 @@
+
+int id_yMzh(int id_lUU5NLXJ, int id_gRoafow1) {
+  if((((id_lUU5NLXJ > 0) && (id_gRoafow1 > 0) && (id_lUU5NLXJ > (2147483647 - id_gRoafow1))) || ((id_lUU5NLXJ < 0) && (id_gRoafow1 < 0) && (id_lUU5NLXJ < (-2147483648 - id_gRoafow1)))))
+  {
+    return id_lUU5NLXJ;
+  }
+  return id_lUU5NLXJ + id_gRoafow1;
+}
+
+int id_blPA(int id_G02qz5rl, int id_NCml) {
+  if(((id_G02qz5rl > 0) && (id_NCml < 0) && (id_G02qz5rl > 2147483647 + id_NCml))|| ((id_G02qz5rl < 0) && (id_NCml > 0) && (id_G02qz5rl < -2147483648 + id_NCml)))
+  {
+    return id_G02qz5rl;
+  }
+  return id_G02qz5rl - id_NCml;
+}
+
+int id_vUQq(int id_SOfp965aPT, int id_wKJ1F) {
+  if((((id_SOfp965aPT > 0) && (id_wKJ1F > 0) && (id_SOfp965aPT > (2147483647 / id_wKJ1F))) || ((id_SOfp965aPT > 0) && (id_wKJ1F <= 0) && (id_wKJ1F < (-2147483648 / id_SOfp965aPT))) || ((id_SOfp965aPT <= 0) && (id_wKJ1F > 0) && (id_SOfp965aPT < (-2147483648 / id_wKJ1F))) || ((id_SOfp965aPT <= 0) && (id_wKJ1F <= 0) && (id_SOfp965aPT != 0) && (id_wKJ1F < (2147483647 / id_SOfp965aPT)))))
+  {
+    return id_SOfp965aPT;
+  }
+  return id_SOfp965aPT * id_wKJ1F;
+}
+
+int id_OFnKP23(int id_BCiBX4l2, int id_UGr8iulh) {
+  if(((id_UGr8iulh == 0) || ((id_BCiBX4l2 == -2147483648) && (id_UGr8iulh == (-1)))))
+  {
+    return id_BCiBX4l2;
+  }
+  return id_BCiBX4l2 / id_UGr8iulh;
+}
+
+int id_XIcdZJ(int id_h9m_ZmUeP, int id_q) {
+  if(id_h9m_ZmUeP < 0 || id_h9m_ZmUeP >= id_q)
+  {
+    return 0;
+  }
+  return id_h9m_ZmUeP;
+}
+
+int id_N9H8RRz6(int id_J0, int id_hcPIZ5G, int id_HPY5kW, int id_efosOnXK, int id_s8XW)
+{
+  int id_TgbNTHzPd[2];
+  id_TgbNTHzPd[0] = 55264;
+  id_TgbNTHzPd[1] = 56511;
+  ((! id_TgbNTHzPd[((10912) != (57255))]) != (((5345 - id_hcPIZ5G + id_J0) >= (20319 * 26497))));
+  {
+    return ! id_J0 * id_J0 * 7092 / ! ! 38798 * id_TgbNTHzPd[id_TgbNTHzPd[0]];
+  }
+  write(id_TgbNTHzPd[0]);
+  write(id_TgbNTHzPd[1]);
+  return ((id_N9H8RRz6(54865 * 28480 / 3157, - id_HPY5kW, id_HPY5kW + 7602, id_efosOnXK && id_efosOnXK || 7622, 51824 || 39418)) != (id_TgbNTHzPd[! 9961]));
+}
+
+int id_nSod_7r0c(int id_B, int id_O2nItj)
+{
+  return ((25469) == (6752));
+}
+
+int id_dK2iLE1(int id_gG)
+{
+  return ! - id_gG;
+}
+
+int id_mOZFSMC()
+{
+  int id_yCBI;
+  id_yCBI = 20137;
+  id_dK2iLE1(((((32400) == (id_yCBI))) == (6810)));
+  write(id_yCBI);
+  return 21710;
+}
+
+int main() {
+  write(id_mOZFSMC());
+  return 0;
+}

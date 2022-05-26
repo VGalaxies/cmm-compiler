@@ -1,0 +1,96 @@
+
+int id_B5KiWA(int id_N8q7, int id_SifhINZ) {
+  if((((id_N8q7 > 0) && (id_SifhINZ > 0) && (id_N8q7 > (2147483647 - id_SifhINZ))) || ((id_N8q7 < 0) && (id_SifhINZ < 0) && (id_N8q7 < (-2147483648 - id_SifhINZ)))))
+  {
+    return id_N8q7;
+  }
+  return id_N8q7 + id_SifhINZ;
+}
+
+int id_rWcvj(int id_GV3zLN, int id_PjV4OVA_n) {
+  if(((id_GV3zLN > 0) && (id_PjV4OVA_n < 0) && (id_GV3zLN > 2147483647 + id_PjV4OVA_n))|| ((id_GV3zLN < 0) && (id_PjV4OVA_n > 0) && (id_GV3zLN < -2147483648 + id_PjV4OVA_n)))
+  {
+    return id_GV3zLN;
+  }
+  return id_GV3zLN - id_PjV4OVA_n;
+}
+
+int id_sHpp(int id_oapn, int id_DY1qr) {
+  if((((id_oapn > 0) && (id_DY1qr > 0) && (id_oapn > (2147483647 / id_DY1qr))) || ((id_oapn > 0) && (id_DY1qr <= 0) && (id_DY1qr < (-2147483648 / id_oapn))) || ((id_oapn <= 0) && (id_DY1qr > 0) && (id_oapn < (-2147483648 / id_DY1qr))) || ((id_oapn <= 0) && (id_DY1qr <= 0) && (id_oapn != 0) && (id_DY1qr < (2147483647 / id_oapn)))))
+  {
+    return id_oapn;
+  }
+  return id_oapn * id_DY1qr;
+}
+
+int id_HHU73kMY0(int id_lFr5qmJ, int id_jym5CtcC) {
+  if(((id_jym5CtcC == 0) || ((id_lFr5qmJ == -2147483648) && (id_jym5CtcC == (-1)))))
+  {
+    return id_lFr5qmJ;
+  }
+  return id_lFr5qmJ / id_jym5CtcC;
+}
+
+int id_c(int id_M0UP, int id_fWYjaSxk) {
+  if(id_M0UP < 0 || id_M0UP >= id_fWYjaSxk)
+  {
+    return 0;
+  }
+  return id_M0UP;
+}
+
+int id_V6wqOe2Qa(int id_vxWA_, int id_VM)
+{
+  return ! id_vxWA_;
+}
+
+int id_ZVKj30eukb(int id_kAB, int id_HeMJSMO, int id_Iz8X, int id_mw_feA, int id_Hoqrwp)
+{
+  - id_V6wqOe2Qa(! 57966 / id_HeMJSMO, id_ZVKj30eukb(37729, id_mw_feA = 32332, id_Iz8X = 30076, id_kAB = id_HeMJSMO, ((((id_HeMJSMO) > (11493))) != (id_HeMJSMO))) && id_HeMJSMO);
+  return 2916;
+}
+
+int id_Q()
+{
+  int id_Zjto[7];
+  int id_z3vBEs_;
+  int id_n_SyO;
+  id_Zjto[0] = 2974;
+  id_Zjto[1] = 37459;
+  id_Zjto[2] = 40821;
+  id_Zjto[3] = 17380;
+  id_Zjto[4] = 4209;
+  id_Zjto[5] = 29780;
+  id_Zjto[6] = 24872;
+  id_z3vBEs_ = 46702;
+  id_n_SyO = 34923;
+  id_Q();
+  id_Zjto[id_n_SyO];
+  write(id_Zjto[0]);
+  write(id_Zjto[1]);
+  write(id_Zjto[2]);
+  write(id_Zjto[3]);
+  write(id_Zjto[4]);
+  write(id_Zjto[5]);
+  write(id_Zjto[6]);
+  write(id_z3vBEs_);
+  write(id_n_SyO);
+  return id_z3vBEs_ = id_n_SyO;
+}
+
+int id_Hb()
+{
+  int id_npkOLAzke;
+  int id_RvW;
+  id_npkOLAzke = 33533;
+  id_RvW = 12326;
+  id_V6wqOe2Qa(((id_npkOLAzke - id_npkOLAzke) > (id_RvW)), ((id_npkOLAzke) <= (id_RvW)) || 28969);
+  write(id_npkOLAzke);
+  write(id_RvW);
+  return 36443;
+}
+
+int main() {
+  write(id_Hb());
+  return 0;
+}

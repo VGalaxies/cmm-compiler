@@ -1,0 +1,75 @@
+
+int id_j4f12cV(int id_dz, int id_cHUn8X) {
+  if((((id_dz > 0) && (id_cHUn8X > 0) && (id_dz > (2147483647 - id_cHUn8X))) || ((id_dz < 0) && (id_cHUn8X < 0) && (id_dz < (-2147483648 - id_cHUn8X)))))
+  {
+    return id_dz;
+  }
+  return id_dz + id_cHUn8X;
+}
+
+int id_iJ(int id_gsXqz, int id_KkARRB_Vdb) {
+  if(((id_gsXqz > 0) && (id_KkARRB_Vdb < 0) && (id_gsXqz > 2147483647 + id_KkARRB_Vdb))|| ((id_gsXqz < 0) && (id_KkARRB_Vdb > 0) && (id_gsXqz < -2147483648 + id_KkARRB_Vdb)))
+  {
+    return id_gsXqz;
+  }
+  return id_gsXqz - id_KkARRB_Vdb;
+}
+
+int id_IV5kNL(int id_NIohc7s, int id_Im) {
+  if((((id_NIohc7s > 0) && (id_Im > 0) && (id_NIohc7s > (2147483647 / id_Im))) || ((id_NIohc7s > 0) && (id_Im <= 0) && (id_Im < (-2147483648 / id_NIohc7s))) || ((id_NIohc7s <= 0) && (id_Im > 0) && (id_NIohc7s < (-2147483648 / id_Im))) || ((id_NIohc7s <= 0) && (id_Im <= 0) && (id_NIohc7s != 0) && (id_Im < (2147483647 / id_NIohc7s)))))
+  {
+    return id_NIohc7s;
+  }
+  return id_NIohc7s * id_Im;
+}
+
+int id_iDt9yi(int id_HGiHnY5c, int id_abNhkH) {
+  if(((id_abNhkH == 0) || ((id_HGiHnY5c == -2147483648) && (id_abNhkH == (-1)))))
+  {
+    return id_HGiHnY5c;
+  }
+  return id_HGiHnY5c / id_abNhkH;
+}
+
+int id_O2HbkfOmxg(int id_XGF8lBfSJK, int id_HF41C5) {
+  if(id_XGF8lBfSJK < 0 || id_XGF8lBfSJK >= id_HF41C5)
+  {
+    return 0;
+  }
+  return id_XGF8lBfSJK;
+}
+
+int id_I0(int id_rO_3Ge, int id_D0hw6VX, int id_uGbBM, int id_MhzqKCw9se, int id_n3wz6g6)
+{
+  int id_JqR5bKxFJ[1];
+  id_JqR5bKxFJ[0] = 11850;
+  write(id_JqR5bKxFJ[0]);
+  return id_uGbBM = id_rO_3Ge;
+  24479;
+  if (((! id_JqR5bKxFJ[id_n3wz6g6 / 5498]) != (id_n3wz6g6)))
+    ! ! - 28943 + 4864 || 63515 + id_rO_3Ge;
+  else
+    id_I0(! 18069 || 22789, id_n3wz6g6 - 12275 && id_MhzqKCw9se, id_uGbBM = 47991, ((((id_D0hw6VX) > (id_D0hw6VX))) != (22381)), ((id_MhzqKCw9se / id_n3wz6g6) <= (18757)));
+  write(id_JqR5bKxFJ[0]);
+  return ! id_D0hw6VX || ((! id_MhzqKCw9se) != (((id_MhzqKCw9se) >= (id_rO_3Ge))));
+}
+
+int id_HYvmkLWK()
+{
+  int id_A;
+  int id_RlT2FfZ;
+  int id_UJVqqO;
+  id_A = 11568;
+  id_RlT2FfZ = 1032;
+  id_UJVqqO = 20346;
+  id_I0(! - id_UJVqqO, ((9908) >= (3822)), ((37205) != (id_UJVqqO)), id_A * id_UJVqqO || id_RlT2FfZ, id_UJVqqO * 39809 && id_UJVqqO);
+  write(id_A);
+  write(id_RlT2FfZ);
+  write(id_UJVqqO);
+  return 51068;
+}
+
+int main() {
+  write(id_HYvmkLWK());
+  return 0;
+}

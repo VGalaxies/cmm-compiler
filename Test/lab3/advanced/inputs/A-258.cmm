@@ -1,0 +1,78 @@
+
+int id_A6ZVhc3i(int id_I, int id_abJz) {
+  if((((id_I > 0) && (id_abJz > 0) && (id_I > (2147483647 - id_abJz))) || ((id_I < 0) && (id_abJz < 0) && (id_I < (-2147483648 - id_abJz)))))
+  {
+    return id_I;
+  }
+  return id_I + id_abJz;
+}
+
+int id_U7RQRlG(int id_Q, int id_MHFUS) {
+  if(((id_Q > 0) && (id_MHFUS < 0) && (id_Q > 2147483647 + id_MHFUS))|| ((id_Q < 0) && (id_MHFUS > 0) && (id_Q < -2147483648 + id_MHFUS)))
+  {
+    return id_Q;
+  }
+  return id_Q - id_MHFUS;
+}
+
+int id_u9Z0x(int id_w97qr7KNq, int id_vjfYDxit) {
+  if((((id_w97qr7KNq > 0) && (id_vjfYDxit > 0) && (id_w97qr7KNq > (2147483647 / id_vjfYDxit))) || ((id_w97qr7KNq > 0) && (id_vjfYDxit <= 0) && (id_vjfYDxit < (-2147483648 / id_w97qr7KNq))) || ((id_w97qr7KNq <= 0) && (id_vjfYDxit > 0) && (id_w97qr7KNq < (-2147483648 / id_vjfYDxit))) || ((id_w97qr7KNq <= 0) && (id_vjfYDxit <= 0) && (id_w97qr7KNq != 0) && (id_vjfYDxit < (2147483647 / id_w97qr7KNq)))))
+  {
+    return id_w97qr7KNq;
+  }
+  return id_w97qr7KNq * id_vjfYDxit;
+}
+
+int id_pXnr0s8(int id_SLgfgg, int id_af) {
+  if(((id_af == 0) || ((id_SLgfgg == -2147483648) && (id_af == (-1)))))
+  {
+    return id_SLgfgg;
+  }
+  return id_SLgfgg / id_af;
+}
+
+int id_Wi5Z4(int id_bMneS, int id_OuHDDS_b) {
+  if(id_bMneS < 0 || id_bMneS >= id_OuHDDS_b)
+  {
+    return 0;
+  }
+  return id_bMneS;
+}
+
+int id_UL(int id_ey9GpKm2Nf, int id_oVsFhbjEf, int id_m, int id_o5G66pIul3, int id_gi009B)
+{
+  int id_jiPbNWaX[6];
+  id_jiPbNWaX[0] = 30417;
+  id_jiPbNWaX[1] = 19964;
+  id_jiPbNWaX[2] = 32806;
+  id_jiPbNWaX[3] = 53221;
+  id_jiPbNWaX[4] = 39629;
+  id_jiPbNWaX[5] = 10973;
+  write(id_jiPbNWaX[0]);
+  write(id_jiPbNWaX[1]);
+  write(id_jiPbNWaX[2]);
+  write(id_jiPbNWaX[3]);
+  write(id_jiPbNWaX[4]);
+  write(id_jiPbNWaX[5]);
+  return id_ey9GpKm2Nf * id_jiPbNWaX[((6925) != (id_ey9GpKm2Nf))];
+}
+
+int id_X()
+{
+  int id_qjxCNuw__O;
+  int id_R4Q1UH;
+  int id_f;
+  id_qjxCNuw__O = 34470;
+  id_R4Q1UH = 45013;
+  id_f = 53268;
+  id_UL(id_qjxCNuw__O + id_R4Q1UH && 30390, id_f && 37356, id_f / id_f, ((42376) == (63566)) || 54802, id_R4Q1UH / id_R4Q1UH / id_R4Q1UH);
+  write(id_qjxCNuw__O);
+  write(id_R4Q1UH);
+  write(id_f);
+  return 40954;
+}
+
+int main() {
+  write(id_X());
+  return 0;
+}

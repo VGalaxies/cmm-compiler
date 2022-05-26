@@ -1,0 +1,74 @@
+
+int id_FTVBbZrI(int id_GO, int id_c13l2KOv) {
+  if((((id_GO > 0) && (id_c13l2KOv > 0) && (id_GO > (2147483647 - id_c13l2KOv))) || ((id_GO < 0) && (id_c13l2KOv < 0) && (id_GO < (-2147483648 - id_c13l2KOv)))))
+  {
+    return id_GO;
+  }
+  return id_GO + id_c13l2KOv;
+}
+
+int id_qns5G(int id_dU25fWyRGV, int id_sA6u7) {
+  if(((id_dU25fWyRGV > 0) && (id_sA6u7 < 0) && (id_dU25fWyRGV > 2147483647 + id_sA6u7))|| ((id_dU25fWyRGV < 0) && (id_sA6u7 > 0) && (id_dU25fWyRGV < -2147483648 + id_sA6u7)))
+  {
+    return id_dU25fWyRGV;
+  }
+  return id_dU25fWyRGV - id_sA6u7;
+}
+
+int id_y5Q_sxBSj(int id_eXKma6C3Dl, int id_vp) {
+  if((((id_eXKma6C3Dl > 0) && (id_vp > 0) && (id_eXKma6C3Dl > (2147483647 / id_vp))) || ((id_eXKma6C3Dl > 0) && (id_vp <= 0) && (id_vp < (-2147483648 / id_eXKma6C3Dl))) || ((id_eXKma6C3Dl <= 0) && (id_vp > 0) && (id_eXKma6C3Dl < (-2147483648 / id_vp))) || ((id_eXKma6C3Dl <= 0) && (id_vp <= 0) && (id_eXKma6C3Dl != 0) && (id_vp < (2147483647 / id_eXKma6C3Dl)))))
+  {
+    return id_eXKma6C3Dl;
+  }
+  return id_eXKma6C3Dl * id_vp;
+}
+
+int id_K6J(int id_yFU, int id_SOJ_lwXId) {
+  if(((id_SOJ_lwXId == 0) || ((id_yFU == -2147483648) && (id_SOJ_lwXId == (-1)))))
+  {
+    return id_yFU;
+  }
+  return id_yFU / id_SOJ_lwXId;
+}
+
+int id_VyjZQg(int id_dKXhuiu_2o, int id_n7dnJKa) {
+  if(id_dKXhuiu_2o < 0 || id_dKXhuiu_2o >= id_n7dnJKa)
+  {
+    return 0;
+  }
+  return id_dKXhuiu_2o;
+}
+
+int id_xavBe(int id_zHKttMCGWW)
+{
+  int id_iYPoy6n[7];
+  id_iYPoy6n[0] = 7752;
+  id_iYPoy6n[1] = 40946;
+  id_iYPoy6n[2] = 21952;
+  id_iYPoy6n[3] = 54413;
+  id_iYPoy6n[4] = 42998;
+  id_iYPoy6n[5] = 18918;
+  id_iYPoy6n[6] = 19671;
+  write(id_iYPoy6n[0]);
+  write(id_iYPoy6n[1]);
+  write(id_iYPoy6n[2]);
+  write(id_iYPoy6n[3]);
+  write(id_iYPoy6n[4]);
+  write(id_iYPoy6n[5]);
+  write(id_iYPoy6n[6]);
+  return - id_iYPoy6n[6] * - - id_zHKttMCGWW / id_zHKttMCGWW;
+}
+
+int id_f8()
+{
+  int id_oEf9EzAGkY;
+  id_oEf9EzAGkY = 46218;
+  id_xavBe(id_oEf9EzAGkY);
+  write(id_oEf9EzAGkY);
+  return 63410;
+}
+
+int main() {
+  write(id_f8());
+  return 0;
+}

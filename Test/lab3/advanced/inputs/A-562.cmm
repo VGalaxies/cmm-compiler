@@ -1,0 +1,80 @@
+
+int id_pkU(int id_x_fQxSWCF, int id_DQgRNtaVp5) {
+  if((((id_x_fQxSWCF > 0) && (id_DQgRNtaVp5 > 0) && (id_x_fQxSWCF > (2147483647 - id_DQgRNtaVp5))) || ((id_x_fQxSWCF < 0) && (id_DQgRNtaVp5 < 0) && (id_x_fQxSWCF < (-2147483648 - id_DQgRNtaVp5)))))
+  {
+    return id_x_fQxSWCF;
+  }
+  return id_x_fQxSWCF + id_DQgRNtaVp5;
+}
+
+int id_remB(int id_dHiSD26MP, int id_QsfydH0) {
+  if(((id_dHiSD26MP > 0) && (id_QsfydH0 < 0) && (id_dHiSD26MP > 2147483647 + id_QsfydH0))|| ((id_dHiSD26MP < 0) && (id_QsfydH0 > 0) && (id_dHiSD26MP < -2147483648 + id_QsfydH0)))
+  {
+    return id_dHiSD26MP;
+  }
+  return id_dHiSD26MP - id_QsfydH0;
+}
+
+int id_eqkF(int id_n, int id_rmy_) {
+  if((((id_n > 0) && (id_rmy_ > 0) && (id_n > (2147483647 / id_rmy_))) || ((id_n > 0) && (id_rmy_ <= 0) && (id_rmy_ < (-2147483648 / id_n))) || ((id_n <= 0) && (id_rmy_ > 0) && (id_n < (-2147483648 / id_rmy_))) || ((id_n <= 0) && (id_rmy_ <= 0) && (id_n != 0) && (id_rmy_ < (2147483647 / id_n)))))
+  {
+    return id_n;
+  }
+  return id_n * id_rmy_;
+}
+
+int id_EQAnU(int id_SYu, int id_B2) {
+  if(((id_B2 == 0) || ((id_SYu == -2147483648) && (id_B2 == (-1)))))
+  {
+    return id_SYu;
+  }
+  return id_SYu / id_B2;
+}
+
+int id_rROEJ46Xp(int id_mX9ZEDtNZS, int id_m1) {
+  if(id_mX9ZEDtNZS < 0 || id_mX9ZEDtNZS >= id_m1)
+  {
+    return 0;
+  }
+  return id_mX9ZEDtNZS;
+}
+
+int id_jm4wtkCxeO(int id_dv4P9X0M, int id_JyE)
+{
+  int id_avDzI6i[8];
+  id_avDzI6i[0] = 34149;
+  id_avDzI6i[1] = 33615;
+  id_avDzI6i[2] = 55471;
+  id_avDzI6i[3] = 59867;
+  id_avDzI6i[4] = 2343;
+  id_avDzI6i[5] = 25462;
+  id_avDzI6i[6] = 38683;
+  id_avDzI6i[7] = 38303;
+  ((42192 + id_dv4P9X0M * 39374 + id_avDzI6i[4]) != (id_dv4P9X0M));
+  write(id_avDzI6i[0]);
+  write(id_avDzI6i[1]);
+  write(id_avDzI6i[2]);
+  write(id_avDzI6i[3]);
+  write(id_avDzI6i[4]);
+  write(id_avDzI6i[5]);
+  write(id_avDzI6i[6]);
+  write(id_avDzI6i[7]);
+  return id_avDzI6i[((! 16201) >= (id_dv4P9X0M - 9041))];
+}
+
+int id_xcPykf()
+{
+  int id_yT9Xd;
+  int id_g;
+  id_yT9Xd = 48793;
+  id_g = 51438;
+  id_jm4wtkCxeO(((32813 - id_yT9Xd) == (10403)), id_g = 1555);
+  write(id_yT9Xd);
+  write(id_g);
+  return 44200;
+}
+
+int main() {
+  write(id_xcPykf());
+  return 0;
+}

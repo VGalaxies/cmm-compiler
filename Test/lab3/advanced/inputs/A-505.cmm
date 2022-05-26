@@ -1,0 +1,71 @@
+
+int id_up0lqFX_(int id_gMjSmz3, int id_LJL1b0r) {
+  if((((id_gMjSmz3 > 0) && (id_LJL1b0r > 0) && (id_gMjSmz3 > (2147483647 - id_LJL1b0r))) || ((id_gMjSmz3 < 0) && (id_LJL1b0r < 0) && (id_gMjSmz3 < (-2147483648 - id_LJL1b0r)))))
+  {
+    return id_gMjSmz3;
+  }
+  return id_gMjSmz3 + id_LJL1b0r;
+}
+
+int id_Y3r3zwO(int id_mHO, int id_Kumj9zI27) {
+  if(((id_mHO > 0) && (id_Kumj9zI27 < 0) && (id_mHO > 2147483647 + id_Kumj9zI27))|| ((id_mHO < 0) && (id_Kumj9zI27 > 0) && (id_mHO < -2147483648 + id_Kumj9zI27)))
+  {
+    return id_mHO;
+  }
+  return id_mHO - id_Kumj9zI27;
+}
+
+int id_SDLHku(int id_qyok2a1, int id_q) {
+  if((((id_qyok2a1 > 0) && (id_q > 0) && (id_qyok2a1 > (2147483647 / id_q))) || ((id_qyok2a1 > 0) && (id_q <= 0) && (id_q < (-2147483648 / id_qyok2a1))) || ((id_qyok2a1 <= 0) && (id_q > 0) && (id_qyok2a1 < (-2147483648 / id_q))) || ((id_qyok2a1 <= 0) && (id_q <= 0) && (id_qyok2a1 != 0) && (id_q < (2147483647 / id_qyok2a1)))))
+  {
+    return id_qyok2a1;
+  }
+  return id_qyok2a1 * id_q;
+}
+
+int id_DnImhkXXN(int id_ybK7S7, int id_z) {
+  if(((id_z == 0) || ((id_ybK7S7 == -2147483648) && (id_z == (-1)))))
+  {
+    return id_ybK7S7;
+  }
+  return id_ybK7S7 / id_z;
+}
+
+int id__SQCECe_TX(int id_kRy8bY, int id_oIb0p) {
+  if(id_kRy8bY < 0 || id_kRy8bY >= id_oIb0p)
+  {
+    return 0;
+  }
+  return id_kRy8bY;
+}
+
+int id_NC4Amzp(int id_A1Z, int id_SNRhtbfj, int id_qnQ2TvI0B2, int id_wXCdlQ26)
+{
+  int id_VqLr[1];
+  id_VqLr[0] = 49483;
+  write(id_VqLr[0]);
+  return 59400 || - ! id_A1Z;
+  id_NC4Amzp(43174 * 48130, id_SNRhtbfj / id_qnQ2TvI0B2 * 548, id_NC4Amzp(id_qnQ2TvI0B2 + id_A1Z - id_A1Z, ((((id_qnQ2TvI0B2) == (id_A1Z))) != (49525)), id_A1Z && 11995 && id_qnQ2TvI0B2, id_qnQ2TvI0B2), id_wXCdlQ26 = 63210);
+  write(id_VqLr[0]);
+  return id_VqLr[! 28443];
+}
+
+int id_ZI6XSso()
+{
+  int id_GgJr;
+  int id_zQEBHq;
+  int id_j;
+  id_GgJr = 15775;
+  id_zQEBHq = 6504;
+  id_j = 41204;
+  id_NC4Amzp(id_NC4Amzp(id_GgJr = 39332, id_j = 16817, id_zQEBHq, ((11601) > (57271))), 54148 * id_zQEBHq / id_zQEBHq, 56044 || 62243 || 42213, - id_zQEBHq - id_zQEBHq);
+  write(id_GgJr);
+  write(id_zQEBHq);
+  write(id_j);
+  return 60717;
+}
+
+int main() {
+  write(id_ZI6XSso());
+  return 0;
+}

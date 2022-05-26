@@ -1,0 +1,87 @@
+
+int id_NOip_z6(int id_jcc7G, int id_NEVM) {
+  if((((id_jcc7G > 0) && (id_NEVM > 0) && (id_jcc7G > (2147483647 - id_NEVM))) || ((id_jcc7G < 0) && (id_NEVM < 0) && (id_jcc7G < (-2147483648 - id_NEVM)))))
+  {
+    return id_jcc7G;
+  }
+  return id_jcc7G + id_NEVM;
+}
+
+int id_TAtfaHm(int id_Ad, int id_AKxn) {
+  if(((id_Ad > 0) && (id_AKxn < 0) && (id_Ad > 2147483647 + id_AKxn))|| ((id_Ad < 0) && (id_AKxn > 0) && (id_Ad < -2147483648 + id_AKxn)))
+  {
+    return id_Ad;
+  }
+  return id_Ad - id_AKxn;
+}
+
+int id_jlizMzE(int id_LbtB, int id_my8294) {
+  if((((id_LbtB > 0) && (id_my8294 > 0) && (id_LbtB > (2147483647 / id_my8294))) || ((id_LbtB > 0) && (id_my8294 <= 0) && (id_my8294 < (-2147483648 / id_LbtB))) || ((id_LbtB <= 0) && (id_my8294 > 0) && (id_LbtB < (-2147483648 / id_my8294))) || ((id_LbtB <= 0) && (id_my8294 <= 0) && (id_LbtB != 0) && (id_my8294 < (2147483647 / id_LbtB)))))
+  {
+    return id_LbtB;
+  }
+  return id_LbtB * id_my8294;
+}
+
+int id_suTmTsLn_(int id_FOZO8a9F, int id_P1ET) {
+  if(((id_P1ET == 0) || ((id_FOZO8a9F == -2147483648) && (id_P1ET == (-1)))))
+  {
+    return id_FOZO8a9F;
+  }
+  return id_FOZO8a9F / id_P1ET;
+}
+
+int id_LqZlui1E(int id_dj1bg, int id_tvO5yJV) {
+  if(id_dj1bg < 0 || id_dj1bg >= id_tvO5yJV)
+  {
+    return 0;
+  }
+  return id_dj1bg;
+}
+
+int id_oi1a5P0cUu()
+{
+  int id_pt_Nrr;
+  int id_H;
+  int id_yjC3McDB3[2];
+  id_pt_Nrr = 52477;
+  id_H = 28284;
+  id_yjC3McDB3[0] = 33157;
+  id_yjC3McDB3[1] = 17142;
+  write(id_pt_Nrr);
+  write(id_H);
+  write(id_yjC3McDB3[0]);
+  write(id_yjC3McDB3[1]);
+  return id_yjC3McDB3[((id_pt_Nrr / id_pt_Nrr - id_H) >= (id_H * id_H))];
+}
+
+int id_XY4(int id_F_ZN1I4a5, int id_mIF, int id_qDm, int id_gOv, int id_pXLIJ4wB)
+{
+  {
+    int id_nr4Tg[8];
+    id_nr4Tg[0] = 34894;
+    id_nr4Tg[1] = 38667;
+    id_nr4Tg[2] = 36476;
+    id_nr4Tg[3] = 51229;
+    id_nr4Tg[4] = 15377;
+    id_nr4Tg[5] = 55254;
+    id_nr4Tg[6] = 41023;
+    id_nr4Tg[7] = 909;
+    ((id_nr4Tg[((id_F_ZN1I4a5) <= (id_F_ZN1I4a5))]) > (- id_F_ZN1I4a5));
+    {
+      ((- ! - - id_F_ZN1I4a5) <= (id_nr4Tg[39391 && id_mIF]));
+    }
+  }
+  return ! ! id_oi1a5P0cUu();
+}
+
+int id_m()
+{
+  id_oi1a5P0cUu();
+  return 28276;
+}
+
+int main() {
+  write(id_m());
+  return 0;
+}
