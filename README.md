@@ -10,8 +10,6 @@
 ├── irsim 中间代码执行虚拟机
 ├── Lab
 │   ├── Code 代码
-│   ├── README
-│   ├── report.pdf 实验报告
 │   └── Test 本地测试用例
 ├── README.md 本文件
 └── Test 隐藏测试用例
